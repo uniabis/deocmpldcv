@@ -1,171 +1,210 @@
--- 
+--
 -- psg.vhd
 --   Programmable Sound Generator (AY-3-8910/YM2149)
 --   Revision 1.00
--- 
+--
 -- Copyright (c) 2006 Kazuhiro Tsujikawa (ESE Artists' factory)
 -- All rights reserved.
--- 
--- Redistribution and use of this source code or any derivative works, are 
+--
+-- Redistribution and use of this source code or any derivative works, are
 -- permitted provided that the following conditions are met:
 --
--- 1. Redistributions of source code must retain the above copyright notice, 
+-- 1. Redistributions of source code must retain the above copyright notice,
 --    this list of conditions and the following disclaimer.
--- 2. Redistributions in binary form must reproduce the above copyright 
---    notice, this list of conditions and the following disclaimer in the 
+-- 2. Redistributions in binary form must reproduce the above copyright
+--    notice, this list of conditions and the following disclaimer in the
 --    documentation and/or other materials provided with the distribution.
--- 3. Redistributions may not be sold, nor may they be used in a commercial 
+-- 3. Redistributions may not be sold, nor may they be used in a commercial
 --    product or activity without specific prior written permission.
 --
--- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
--- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED 
--- TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
--- PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
--- CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
--- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+-- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+-- TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+-- PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+-- CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+-- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 -- PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
--- OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
--- WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
--- OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+-- OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+-- WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+-- OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 -- ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
--- 
+--
 
 library ieee;
-use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+    use ieee.std_logic_1164.all;
+    use ieee.std_logic_unsigned.all;
 
 entity psg is
-  port(
-    clk21m  : in std_logic;
-    reset   : in std_logic;
-    clkena  : in std_logic;
-    req     : in std_logic;
-    ack     : out std_logic;
-    wrt     : in std_logic;
-    adr     : in std_logic_vector(15 downto 0);
-    dbi     : out std_logic_vector(7 downto 0);
-    dbo     : in std_logic_vector(7 downto 0);
+    port(
+        clk21m      : in    std_logic;
+        reset       : in    std_logic;
+        clkena      : in    std_logic;
+        req         : in    std_logic;
+        ack         : out   std_logic;
+        wrt         : in    std_logic;
+        adr         : in    std_logic_vector( 15 downto 0 );
+        dbi         : out   std_logic_vector(  7 downto 0 );
+        dbo         : in    std_logic_vector(  7 downto 0 );
 
-    joya    : inout std_logic_vector(5 downto 0);
-    stra    : out std_logic;
-    joyb    : inout std_logic_vector(5 downto 0);
-    strb    : out std_logic;
+        joya        : inout std_logic_vector(  5 downto 0 );
+        stra        : out   std_logic;
+        joyb        : inout std_logic_vector(  5 downto 0 );
+        strb        : out   std_logic;
 
-    kana    : out std_logic;
-    cmtin   : in std_logic;
-    keymode : in std_logic;
+        kana        : out   std_logic;
+        cmtin       : in    std_logic;
+        keymode     : in    std_logic;
 
-    wave    : out std_logic_vector(7 downto 0)
+        wave        : out   std_logic_vector(  7 downto 0 )
  );
 end psg;
 
 architecture rtl of psg is
 
-  component psg_wave
-    port(
-      clk21m  : in std_logic;
-      reset   : in std_logic;
-      clkena  : in std_logic;
-      req     : in std_logic;
-      ack     : out std_logic;
-      wrt     : in std_logic;
-      adr     : in std_logic_vector(15 downto 0);
-      dbi     : out std_logic_vector(7 downto 0);
-      dbo     : in std_logic_vector(7 downto 0);
-      wave    : out std_logic_vector(7 downto 0)
-    );
-  end component;
+    component psg_wave
+        port (
+            clk21m      : in    std_logic;
+            reset       : in    std_logic;
+            clkena      : in    std_logic;
+            req         : in    std_logic;
+            ack         : out   std_logic;
+            wrt         : in    std_logic;
+            adr         : in    std_logic_vector( 15 downto 0 );
+            dbi         : out   std_logic_vector(  7 downto 0 );
+            dbo         : in    std_logic_vector(  7 downto 0 );
+            wave        : out   std_logic_vector(  7 downto 0 )
+        );
+    end component;
 
-  -- PSG signals
-  signal PsgDbi      : std_logic_vector(7 downto 0);
-  signal PsgRegPtr   : std_logic_vector(3 downto 0);
+    -- psg signals
+    signal psgdbi       : std_logic_vector(  7 downto 0 );
+    signal psgregptr    : std_logic_vector(  3 downto 0 );
 
-  signal RegA        : std_logic_vector(7 downto 0);
-  signal RegB        : std_logic_vector(7 downto 0);
+    signal rega         : std_logic_vector(  7 downto 0 );
+    signal regb         : std_logic_vector(  7 downto 0 );
 
 begin
 
-  ----------------------------------------------------------------
-  -- PSG register read
-  ----------------------------------------------------------------
-  dbi <= RegA when PsgRegPtr = "1110" and adr(1 downto 0) = "10" else
-         RegB when PsgRegPtr = "1111" and adr(1 downto 0) = "10" else
-         PsgDbi;
+    ----------------------------------------------------------------
+    -- psg register read
+    ----------------------------------------------------------------
+    dbi <=  rega    when( psgregptr = "1110" and adr(1 downto 0) = "10" )else
+            regb    when( psgregptr = "1111" and adr(1 downto 0) = "10" )else
+            psgdbi;
 
-  ----------------------------------------------------------------
-  -- PSG register write
-  ----------------------------------------------------------------
-  process(clk21m, reset)
+    ----------------------------------------------------------------
+    -- psg register write
+    ----------------------------------------------------------------
+    process( reset, clk21m )
+    begin
+        if( reset = '1' )then
+            psgregptr   <= (others => '0');
+        elsif( clk21m'event and clk21m = '1' )then
+            if (req = '1' and wrt = '1' and adr(1 downto 0) = "00") then
+                -- register pointer
+                psgregptr <= dbo(3 downto 0);
+            end if;
+        end if;
+    end process;
 
-  begin
+    process( reset, clk21m )
+    begin
+        if( reset = '1' )then
+            rega <= (others => '0');
+        elsif( clk21m'event and clk21m = '1' )then
+            -- psg register #15 bit6 - joystick select : 0=porta, 1=portb
+            if( regb(6) = '0' )then
+                rega(5 downto 0) <= joya;
+            else
+                rega(5 downto 0) <= joyb;
+            end if;
 
-    if (reset = '1') then
+            rega(7) <= cmtin;       -- cassete voice input : always '0' on msx turbor
+            rega(6) <= keymode;     -- keyboard mode : 1=jis
+        end if;
+    end process;
 
-      PsgRegPtr <= (others => '0');
-      RegA      <= (others => '0');
-      RegB      <= (others => '0');
-      JoyA      <= (others => 'Z');
-      JoyB      <= (others => 'Z');
-      kana      <= '0';
+    process( reset, clk21m )
+    begin
+        if( reset = '1' )then
+            regb        <= (others => '0');
+        elsif( clk21m'event and clk21m = '1' )then
+            if( req = '1' and wrt = '1' and adr(1 downto 0) = "01" )then
+                -- psg registers
+                if( psgregptr = "1111" )then
+                    regb <= dbo;
+                end if;
+            end if;
+        end if;
+    end process;
 
-    elsif (clk21m'event and clk21m = '1') then
+    process( clk21m )
+    begin
+        if( clk21m'event and clk21m = '1' )then
+            -- strobe output
+            strb <= regb(5);
+            stra <= regb(4);
+        end if;
+    end process;
 
-      if (req = '1' and wrt = '1' and adr(1 downto 0) = "00") then
-        -- register pointer
-        PsgRegPtr <= dbo(3 downto 0);
-      elsif (req = '1' and wrt = '1' and adr(1 downto 0) = "01") then
-        -- PSG registers
-        case PsgRegPtr is
-          when "1111" => RegB <= dbo;
-          when others => null;
-        end case;
-      end if;
+    process( reset, clk21m )
+    begin
+        if( reset = '1' )then
+            kana <= '0';
+        elsif( clk21m'event and clk21m = '1' )then
+            if( regb(7) = '0' )then
+                kana <= '0'; -- kana-led : 0=on, Z=off
+            else
+                kana <= '1'; -- kana-led : 0=on, Z=off
+            end if;
+        end if;
+    end process;
 
-      RegA(7) <= cmtin;   -- Cassete voice input : always '0' on MSX turboR
-      RegA(6) <= keymode; -- KeyBoard mode : 1=JIS
+    process( reset, clk21m )
+    begin
+        if( reset = '1' )then
+            joya        <= (others => 'Z');
+        elsif( clk21m'event and clk21m = '1' )then
+            -- trigger a/b output joystick porta
+            case regb(1 downto 0) is
+                when "00"   => joya(5 downto 4) <= "00";
+                when "01"   => joya(5 downto 4) <= "0Z";
+                when "10"   => joya(5 downto 4) <= "Z0";
+                when others => joya(5 downto 4) <= "ZZ";
+            end case;
+        end if;
+    end process;
 
-      if (RegB(7) = '0') then
-        kana <= '0'; -- KANA-LED : 0=ON, Z=OFF
-      else
-        kana <= '1'; -- KANA-LED : 0=ON, Z=OFF
-      end if;
+    process( reset, clk21m )
+    begin
+        if( reset = '1' )then
+            joyb <= (others => 'Z');
+        elsif( clk21m'event and clk21m = '1' )then
+            -- trigger a/b output joystick portb
+            case regb( 3 downto 2 ) is
+                when "00"   => joyb(5 downto 4) <= "00";
+                when "01"   => joyb(5 downto 4) <= "0Z";
+                when "10"   => joyb(5 downto 4) <= "Z0";
+                when others => joyb(5 downto 4) <= "ZZ";
+            end case;
+        end if;
+    end process;
 
-      -- PSG register #15 bit6 - JoyStick select : 0=PortA, 1=PortB
-      if (RegB(6) = '0') then
-        RegA(5 downto 0) <= JoyA;
-      else
-        RegA(5 downto 0) <= JoyB;
-      end if;
-
-      -- Strobe output
-      StrB <= RegB(5);
-      StrA <= RegB(4);
-
-      -- Trigger A/B output Joystick PortA
-      case RegB(1 downto 0) is
-        when "00"   => JoyA(5 downto 4) <= "00";
-        when "01"   => JoyA(5 downto 4) <= "0Z";
-        when "10"   => JoyA(5 downto 4) <= "Z0";
-        when others => JoyA(5 downto 4) <= "ZZ";
-      end case;
-
-      -- Trigger A/B output Joystick PortB
-      case RegB(3 downto 2) is
-        when "00"   => JoyB(5 downto 4) <= "00";
-        when "01"   => JoyB(5 downto 4) <= "0Z";
-        when "10"   => JoyB(5 downto 4) <= "Z0";
-        when others => JoyB(5 downto 4) <= "ZZ";
-      end case;
-
-    end if;
-
-  end process;
-
-  ----------------------------------------------------------------
-  -- Connect components
-  ----------------------------------------------------------------
-
-  PsgCh  : psg_wave
-    port map(clk21m, reset, clkena, req, ack, wrt, adr, PsgDbi, dbo, wave);
+    ----------------------------------------------------------------
+    -- connect components
+    ----------------------------------------------------------------
+    u_psgch: psg_wave
+    port map(
+        clk21m      => clk21m   ,
+        reset       => reset    ,
+        clkena      => clkena   ,
+        req         => req      ,
+        ack         => ack      ,
+        wrt         => wrt      ,
+        adr         => adr      ,
+        dbi         => psgdbi   ,
+        dbo         => dbo      ,
+        wave        => wave
+    );
 
 end rtl;

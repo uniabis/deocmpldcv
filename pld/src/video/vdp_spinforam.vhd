@@ -1,6 +1,6 @@
 --
---  linebuf.vhd
---    Line buffer for VGA upscan converter.
+--  vdp_spinforam.vhd
+--   Sprite information table memory.
 --
 --  Copyright (C) 2006 Kunihiko Ohnaka
 --  All rights reserved.
@@ -38,18 +38,18 @@
 --     copyright notice, this list of conditions and the following
 --     disclaimer in the documentation and/or other materials
 --     provided with the distribution.
---  3. Redistributions may not be sold, nor may they be used in a 
+--  3. Redistributions may not be sold, nor may they be used in a
 --     commercial product or activity without specific prior written
 --     permission.
 --
---  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
---  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+--  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+--  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 --  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
 --  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
 --  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
 --  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 --  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
---  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+--  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 --  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 --  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 --  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
@@ -70,49 +70,47 @@
 -------------------------------------------------------------------------------
 -- Document
 --
--- JP: NTSCタイミングの 15KHzで出力されるビデオ信号をVGAタイミングに
--- JP: 合わせた31KHzの倍レートで出力するためのラインバッファモジュール
--- JP: です。
--- JP: ESE-VDPのメインクロックである21.477MHzで動作させるため、
--- JP: ドットクロックは一般的な 640x480ドットVGAモードの25.175MHz
--- JP: とは異なります。そのため、液晶モニタ等で表示させるとドットの形が
--- JP: いびつな形になる事があります。
+-- JP: 次の行で表示するスプライトの情報を保持するテーブルです。
+-- JP: テーブルには以下の情報を保持します。
+--
+-- Sprite informations. (Total 31bits)
+--   X        (9bit)
+--   pattern  (16 bit)
+--   color    (4bit)
+--   cc       (1bit)
+--   ic       (1bit)
 --
 
-library IEEE;
-use IEEE.std_logic_1164.all;
-use IEEE.std_logic_unsigned.all;
+LIBRARY IEEE;
+    USE IEEE.STD_LOGIC_1164.ALL;
+    USE IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-entity linebuf is
-   port (
-         address  : in  std_logic_vector(9 downto 0);
-         inclock  : in  std_logic;
-         we       : in  std_logic;
-         data     : in  std_logic_vector(5 downto 0);
-         q        : out std_logic_vector(5 downto 0)
-        );
-end linebuf;
+ENTITY VDP_SPINFORAM IS
+     PORT (
+         ADDRESS    : IN    STD_LOGIC_VECTOR(  2 DOWNTO 0 );
+         INCLOCK    : IN    STD_LOGIC;
+         WE         : IN    STD_LOGIC;
+         DATA       : IN    STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+         Q          : OUT   STD_LOGIC_VECTOR( 31 DOWNTO 0 )
+    );
+END VDP_SPINFORAM;
 
-architecture RTL of linebuf is
---  type Mem is array (639 downto 0) of std_logic_vector(5 downto 0);
-  type Mem is array (639 downto 0) of std_logic_vector(3 downto 0);
-  signal iMem  : Mem;
-  signal iAddress : std_logic_vector(9 downto 0);
+ARCHITECTURE RTL OF VDP_SPINFORAM IS
+    TYPE MEM IS ARRAY ( 7 DOWNTO 0 ) OF STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+    SIGNAL IMEM     : MEM;
+    SIGNAL IADDRESS : STD_LOGIC_VECTOR( 2 DOWNTO 0 );
 
-  begin
+BEGIN
+    PROCESS( INCLOCK )
+    BEGIN
+        IF( INCLOCK'EVENT AND INCLOCK ='1' )THEN
+            IF (WE = '1') THEN
+                IMEM(CONV_INTEGER(ADDRESS)) <= DATA;
+            END IF;
+            IADDRESS <= ADDRESS;
+        END IF;
+    END PROCESS;
 
-  process (inclock)
-  begin
-    if (inclock'event and inclock ='1') then
-      if (we = '1') then
---        iMem(conv_integer(address)) <= data(5 downto 0);
-        iMem(conv_integer(address)) <= data(5 downto 2);
-      end if;
-      iAddress <= address;
-    end if;
-  end process;
+    Q <= IMEM( CONV_INTEGER(IADDRESS) );
 
---  q <= iMem(conv_integer(iAddress));
-  q <= iMem(conv_integer(iAddress)) & "00";
-
-end RTL;
+END RTL;

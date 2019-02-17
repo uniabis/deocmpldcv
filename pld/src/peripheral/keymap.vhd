@@ -1,33 +1,39 @@
--- 
+--
 -- keymap.vhd
 --   keymap ROM tables for eseps2.vhd
 --   Revision 1.00
--- 
+--
 -- Copyright (c) 2006 Kazuhiro Tsujikawa (ESE Artists' factory)
 -- All rights reserved.
--- 
--- Redistribution and use of this source code or any derivative works, are 
+--
+-- Redistribution and use of this source code or any derivative works, are
 -- permitted provided that the following conditions are met:
 --
--- 1. Redistributions of source code must retain the above copyright notice, 
+-- 1. Redistributions of source code must retain the above copyright notice,
 --    this list of conditions and the following disclaimer.
--- 2. Redistributions in binary form must reproduce the above copyright 
---    notice, this list of conditions and the following disclaimer in the 
+-- 2. Redistributions in binary form must reproduce the above copyright
+--    notice, this list of conditions and the following disclaimer in the
 --    documentation and/or other materials provided with the distribution.
--- 3. Redistributions may not be sold, nor may they be used in a commercial 
+-- 3. Redistributions may not be sold, nor may they be used in a commercial
 --    product or activity without specific prior written permission.
 --
--- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
--- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED 
--- TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
--- PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
--- CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
--- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+-- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+-- TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+-- PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+-- CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+-- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 -- PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
--- OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
--- WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
--- OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+-- OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+-- WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+-- OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 -- ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+--
+-- 2018.07.27 modified by KdL
+-- Added optional scancode $61 '\|' to the English keyboard.
+--
+-- 2013.08.12 modified by KdL
+-- Added RWIN and LWIN usable as alternatives to the space-bar.
 --
 
 library ieee;
@@ -59,7 +65,7 @@ constant rom101 : rom_101 := (
 -- ALT R ($E0 $11) : [GRAPH]   ($26)
 -- ALT L ($11)     : [GRAPH]   ($26)
 
--- 101 keyboard / Shift = OFF
+-- 101 keyboard (set 2) / Shift = OFF
 
         X"FF", X"7F", X"7F", X"17", X"76", X"56", X"66", X"7F", -- 00
         X"7F", X"7F", X"67", X"26", X"07", X"37", X"D1", X"7F", -- 08
@@ -73,7 +79,7 @@ constant rom101 : rom_101 := (
         X"7F", X"32", X"42", X"14", X"71", X"54", X"21", X"7F", -- 48
         X"7F", X"52", X"F0", X"7F", X"61", X"A1", X"7F", X"7F", -- 50
         X"36", X"06", X"77", X"12", X"7F", X"41", X"7F", X"7F", -- 58
-        X"7F", X"7F", X"7F", X"7F", X"1B", X"7F", X"57", X"3B", -- 60
+        X"7F", X"41", X"7F", X"7F", X"1B", X"7F", X"57", X"3B", -- 60
         X"7F", X"49", X"41", X"79", X"2A", X"7F", X"7F", X"7F", -- 68
         X"39", X"7A", X"59", X"0A", X"1A", X"3A", X"27", X"6A", -- 70
         X"7F", X"19", X"69", X"5A", X"09", X"4A", X"7F", X"7F", -- 78
@@ -97,8 +103,8 @@ constant rom101 : rom_101 := (
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 00
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 08
         X"7F", X"26", X"7F", X"7F", X"16", X"7F", X"7F", X"7F", -- 10
-        X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 18
-        X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 20
+        X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"08", -- 18  (LWIN = $1F = SPACE)
+        X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"08", -- 20  (RWIN = $27 = SPACE)
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 28
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 30
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- 38
@@ -127,7 +133,7 @@ constant rom101 : rom_101 := (
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- F0
         X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", X"7F", -- F8
 
--- 101 keyboard / Shift = ON
+-- 101 keyboard (set 2) / Shift = ON
 
         X"FF", X"FF", X"FF", X"97", X"F6", X"D6", X"E6", X"FF", -- 00
         X"FF", X"FF", X"E7", X"E6", X"87", X"B7", X"B1", X"FF", -- 08
@@ -141,7 +147,7 @@ constant rom101 : rom_101 := (
         X"FF", X"B2", X"C2", X"94", X"02", X"D4", X"D2", X"FF", -- 48
         X"FF", X"D2", X"A0", X"FF", X"E1", X"F1", X"FF", X"FF", -- 50
         X"B6", X"86", X"F7", X"92", X"FF", X"C1", X"FF", X"FF", -- 58
-        X"FF", X"FF", X"FF", X"FF", X"9B", X"FF", X"D7", X"BB", -- 60
+        X"FF", X"C1", X"FF", X"FF", X"9B", X"FF", X"D7", X"BB", -- 60
         X"FF", X"C9", X"C1", X"F9", X"AA", X"FF", X"FF", X"FF", -- 68
         X"B9", X"FA", X"D9", X"8A", X"9A", X"BA", X"A7", X"EA", -- 70
         X"FF", X"99", X"E9", X"DA", X"89", X"BA", X"FF", X"FF", -- 78
@@ -165,8 +171,8 @@ constant rom101 : rom_101 := (
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 00
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 08
         X"FF", X"A6", X"FF", X"FF", X"96", X"FF", X"FF", X"FF", -- 10
-        X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 18
-        X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 20
+        X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"88", -- 18  (LWIN = $1F = SHIFT + SPACE)
+        X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"88", -- 20  (RWIN = $27 = SHIFT + SPACE)
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 28
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 30
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 38
@@ -209,8 +215,9 @@ constant rom106 : rom_106 := (
 -- Katakana ($13)    : [KANA]   ($46)
 -- ALT R ($E0 11)    : [GRAPH]  ($26)
 -- ALT L ($11)       : [GRAPH]  ($26)
--- Keymap for 106 keyboard
- 
+
+-- Keymap for 106 keyboard (set 2)
+
         X"FF", X"FF", X"FF", X"17", X"76", X"56", X"66", X"FF", -- 00
         X"FF", X"FF", X"67", X"26", X"07", X"37", X"67", X"FF", -- 08
         X"FF", X"26", X"06", X"46", X"16", X"64", X"10", X"FF", -- 10
@@ -247,8 +254,8 @@ constant rom106 : rom_106 := (
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 00
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 08
         X"FF", X"26", X"FF", X"FF", X"16", X"FF", X"FF", X"FF", -- 10
-        X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 18
-        X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 20
+        X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"08", -- 18  (LWIN = $1F = SPACE)
+        X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"08", -- 20  (RWIN = $27 = SPACE)
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 28
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 30
         X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", X"FF", -- 38
@@ -287,7 +294,7 @@ process (clk) begin
     dbi1 <= rom101(conv_integer(adr(9 downto 0)));
     dbi2 <= rom106(conv_integer(adr(8 downto 0)));
   end if;
-end process; 
+end process;
 
 dbi <= dbi1 when adr(10) = '0' else dbi2;
 

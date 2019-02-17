@@ -1,366 +1,485 @@
--- 
+--
 -- scc_wave.vhd
 --   Sound generator with wave table
 --   Revision 1.00
--- 
+--
 -- Copyright (c) 2006 Kazuhiro Tsujikawa (ESE Artists' factory)
 -- All rights reserved.
--- 
--- Redistribution and use of this source code or any derivative works, are 
+--
+-- Redistribution and use of this source code or any derivative works, are
 -- permitted provided that the following conditions are met:
 --
--- 1. Redistributions of source code must retain the above copyright notice, 
+-- 1. Redistributions of source code must retain the above copyright notice,
 --    this list of conditions and the following disclaimer.
--- 2. Redistributions in binary form must reproduce the above copyright 
---    notice, this list of conditions and the following disclaimer in the 
+-- 2. Redistributions in binary form must reproduce the above copyright
+--    notice, this list of conditions and the following disclaimer in the
 --    documentation and/or other materials provided with the distribution.
--- 3. Redistributions may not be sold, nor may they be used in a commercial 
+-- 3. Redistributions may not be sold, nor may they be used in a commercial
 --    product or activity without specific prior written permission.
 --
--- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
--- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED 
--- TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
--- PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
--- CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
--- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+-- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+-- TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+-- PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+-- CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+-- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 -- PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
--- OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
--- WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
--- OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+-- OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+-- WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+-- OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 -- ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
--- 
+--
+
+--  2007/01/31  modified by t.hara
 
 library ieee;
-use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+    use ieee.std_logic_1164.all;
+    use ieee.std_logic_signed.all;
+
+entity scc_wave_mul is
+    port(
+        a           : in    std_logic_vector(  7 downto 0 );    -- 8bit ２の補数
+        b           : in    std_logic_vector(  3 downto 0 );    -- 4bit バイナリ
+        c           : out   std_logic_vector( 11 downto 0 )     -- 12bit ２の補数
+    );
+end scc_wave_mul;
+
+architecture rtl of scc_wave_mul is
+    signal w_mul    : std_logic_vector( 12 downto 0 );
+begin
+    w_mul   <= a * ('0' & b);
+    c       <= w_mul( 11 downto 0 );
+end rtl;
+
+------------------------------------------------------------------------
+library ieee;
+    use ieee.std_logic_1164.all;
+    use ieee.std_logic_signed.all;
+
+entity scc_mix_mul is
+    port(
+        a           : in    std_logic_vector( 15 downto 0 );    -- 16bit ２の補数
+        b           : in    std_logic_vector(  2 downto 0 );    -- 3bit バイナリ
+        c           : out   std_logic_vector( 18 downto 0 )     -- 19bit ２の補数
+    );
+end scc_mix_mul;
+
+architecture rtl of scc_mix_mul is
+    signal w_mul    : std_logic_vector( 19 downto 0 );
+begin
+    w_mul   <= a * ('0' & b);
+    c       <= w_mul( 18 downto 0 );
+end rtl;
+
+------------------------------------------------------------------------
+library ieee;
+    use ieee.std_logic_1164.all;
+    use ieee.std_logic_unsigned.all;
 
 entity scc_wave is
-  port(
-    clk21m  : in std_logic;
-    reset   : in std_logic;
-    clkena  : in std_logic;
-    req     : in std_logic;
-    ack     : out std_logic;
-    wrt     : in std_logic;
-    adr     : in std_logic_vector(7 downto 0);
-    dbi     : out std_logic_vector(7 downto 0);
-    dbo     : in std_logic_vector(7 downto 0);
-    wave    : out std_logic_vector(7 downto 0)
- );
+    port(
+        clk21m      : in    std_logic;
+        reset       : in    std_logic;
+        clkena      : in    std_logic;
+        req         : in    std_logic;
+        ack         : out   std_logic;
+        wrt         : in    std_logic;
+        adr         : in    std_logic_vector( 7 downto 0 );
+        dbi         : out   std_logic_vector( 7 downto 0 );
+        dbo         : in    std_logic_vector( 7 downto 0 );
+        wave        : out   std_logic_vector( 14 downto 0 )
+    );
 end scc_wave;
 
 architecture rtl of scc_wave is
 
-  -- Wave memory control
-  signal WaveCe      : std_logic;
-  signal WaveWe      : std_logic;
-  signal WaveAdr     : std_logic_vector(7 downto 0);
-  signal iWaveDat    : std_logic_vector(7 downto 0);
-  signal oWaveDat    : std_logic_vector(7 downto 0);
+    component ram
+        port (
+            adr : in    std_logic_vector( 7 downto 0 );
+            clk : in    std_logic;
+            we  : in    std_logic;
+            dbo : in    std_logic_vector( 7 downto 0 );
+            dbi : out   std_logic_vector( 7 downto 0 )
+        );
+    end component;
 
-  -- SCC resisters
-  signal SccFreqChA  : std_logic_vector(11 downto 0);
-  signal SccFreqChB  : std_logic_vector(11 downto 0);
-  signal SccFreqChC  : std_logic_vector(11 downto 0);
-  signal SccFreqChD  : std_logic_vector(11 downto 0);
-  signal SccFreqChE  : std_logic_vector(11 downto 0);
-  signal SccVolChA   : std_logic_vector(3 downto 0);
-  signal SccVolChB   : std_logic_vector(3 downto 0);
-  signal SccVolChC   : std_logic_vector(3 downto 0);
-  signal SccVolChD   : std_logic_vector(3 downto 0);
-  signal SccVolChE   : std_logic_vector(3 downto 0);
-  signal SccChanSel  : std_logic_vector(4 downto 0);
+    component scc_wave_mul
+        port(
+            a   : in    std_logic_vector(  7 downto 0 );    -- 8bit ２の補数
+            b   : in    std_logic_vector(  3 downto 0 );    -- 4bit バイナリ
+            c   : out   std_logic_vector( 11 downto 0 )     -- 12bit ２の補数
+        );
+    end component;
 
-  signal SccModeSel  : std_logic_vector(7 downto 0);
+    -- wire signal
+    signal w_wave_ce        : std_logic;
+    signal w_wave_we        : std_logic;
+    signal w_wave_adr       : std_logic_vector(  7 downto 0 );
+    signal w_ch_dec         : std_logic_vector(  4 downto 0 );
+    signal w_ch_bit         : std_logic;
+    signal w_ch_mask        : std_logic_vector(  7 downto 0 );
+    signal w_ch_vol         : std_logic_vector(  3 downto 0 );
+    signal w_wave           : std_logic_vector(  7 downto 0 );
+    signal w_mul            : std_logic_vector( 11 downto 0 );
+    signal ram_dbi          : std_logic_vector(  7 downto 0 );
+    signal lpf1_wave        : std_logic_vector( 14 downto 0 );
+    signal lpf2_wave        : std_logic_vector( 14 downto 0 );
+    signal lpf3_wave        : std_logic_vector( 14 downto 0 );
 
-  -- SCC temporaries
-  signal SccRstChA   : std_logic;
-  signal SccRstChB   : std_logic;
-  signal SccRstChC   : std_logic;
-  signal SccRstChD   : std_logic;
-  signal SccRstChE   : std_logic;
+    -- scc resisters
+    signal reg_freq_ch_a    : std_logic_vector( 11 downto 0 );
+    signal reg_freq_ch_b    : std_logic_vector( 11 downto 0 );
+    signal reg_freq_ch_c    : std_logic_vector( 11 downto 0 );
+    signal reg_freq_ch_d    : std_logic_vector( 11 downto 0 );
+    signal reg_freq_ch_e    : std_logic_vector( 11 downto 0 );
+    signal reg_vol_ch_a     : std_logic_vector(  3 downto 0 );
+    signal reg_vol_ch_b     : std_logic_vector(  3 downto 0 );
+    signal reg_vol_ch_c     : std_logic_vector(  3 downto 0 );
+    signal reg_vol_ch_d     : std_logic_vector(  3 downto 0 );
+    signal reg_vol_ch_e     : std_logic_vector(  3 downto 0 );
+    signal reg_ch_sel       : std_logic_vector(  4 downto 0 );
+    signal reg_mode_sel     : std_logic_vector(  7 downto 0 );
 
-  signal SccPtrChA   : std_logic_vector(4 downto 0);
-  signal SccPtrChB   : std_logic_vector(4 downto 0);
-  signal SccPtrChC   : std_logic_vector(4 downto 0);
-  signal SccPtrChD   : std_logic_vector(4 downto 0);
-  signal SccPtrChE   : std_logic_vector(4 downto 0);
-
-  signal SccClkEna   : std_logic_vector(2 downto 0);
-  signal SccChNum    : std_logic_vector(2 downto 0);
-
-  signal ireq        : std_logic;
-
-  component ram is
-    port (
-      adr : in  std_logic_vector(7 downto 0);
-      clk : in  std_logic;
-      we  : in  std_logic;
-      dbo : in  std_logic_vector(7 downto 0);
-      dbi : out std_logic_vector(7 downto 0)
-    );
-  end component;
-
+    -- internal registers
+    signal ff_rst_ch_a      : std_logic;
+    signal ff_rst_ch_b      : std_logic;
+    signal ff_rst_ch_c      : std_logic;
+    signal ff_rst_ch_d      : std_logic;
+    signal ff_rst_ch_e      : std_logic;
+    signal ff_ptr_ch_a      : std_logic_vector(  4 downto 0 );
+    signal ff_ptr_ch_b      : std_logic_vector(  4 downto 0 );
+    signal ff_ptr_ch_c      : std_logic_vector(  4 downto 0 );
+    signal ff_ptr_ch_d      : std_logic_vector(  4 downto 0 );
+    signal ff_ptr_ch_e      : std_logic_vector(  4 downto 0 );
+    signal ff_ch_num        : std_logic_vector(  2 downto 0 );
+    signal ff_ch_num_dl     : std_logic_vector(  2 downto 0 );
+    signal ff_mix           : std_logic_vector( 14 downto 0 );
+    signal ff_wave_ce       : std_logic;
+    signal ff_wave_ce_dl    : std_logic;
+    signal ff_req_dl        : std_logic;
+    signal ff_wave_dat      : std_logic_vector(  7 downto 0 );
+    signal ff_wave          : std_logic_vector( 14 downto 0 );
 begin
 
-  ----------------------------------------------------------------
-  -- Misceracle control
-  ----------------------------------------------------------------
-  process(clk21m, reset)
+    ----------------------------------------------------------------
+    -- scc register access
+    ----------------------------------------------------------------
+    process(clk21m, reset)
+    begin
+        if( reset = '1' )then
+            ff_req_dl       <= '0';
 
-  begin
+            reg_freq_ch_a   <= (others => '0');
+            reg_freq_ch_b   <= (others => '0');
+            reg_freq_ch_c   <= (others => '0');
+            reg_freq_ch_d   <= (others => '0');
+            reg_freq_ch_e   <= (others => '0');
 
-    if (reset = '1') then
+            reg_vol_ch_a    <= (others => '0');
+            reg_vol_ch_b    <= (others => '0');
+            reg_vol_ch_c    <= (others => '0');
+            reg_vol_ch_d    <= (others => '0');
+            reg_vol_ch_e    <= (others => '0');
 
-      SccClkEna <= (others => '0');
+            reg_ch_sel      <= (others => '0');
+            reg_mode_sel    <= (others => '0');
 
-    elsif (clk21m'event and clk21m = '1') then
+            ff_rst_ch_a     <= '0';
+            ff_rst_ch_b     <= '0';
+            ff_rst_ch_c     <= '0';
+            ff_rst_ch_d     <= '0';
+            ff_rst_ch_e     <= '0';
 
-      -- Clock Enable (clock divider)
-      SccClkEna <= SccClkEna + 1;
+        elsif (clk21m'event and clk21m = '1') then
+            -- mapped i/o port access on b8a0-b8afh (9880-988fh) ... register write
+            if( req = '1' and ff_req_dl = '0' and adr(7 downto 5) = "101" and wrt = '1' )then
+                case adr(3 downto 0) is
+                    when "0000" => reg_freq_ch_a(  7 downto 0 ) <= dbo( 7 downto 0 ); ff_rst_ch_a <= reg_mode_sel(5);
+                    when "0001" => reg_freq_ch_a( 11 downto 8 ) <= dbo( 3 downto 0 ); ff_rst_ch_a <= reg_mode_sel(5);
+                    when "0010" => reg_freq_ch_b(  7 downto 0 ) <= dbo( 7 downto 0 ); ff_rst_ch_b <= reg_mode_sel(5);
+                    when "0011" => reg_freq_ch_b( 11 downto 8 ) <= dbo( 3 downto 0 ); ff_rst_ch_b <= reg_mode_sel(5);
+                    when "0100" => reg_freq_ch_c(  7 downto 0 ) <= dbo( 7 downto 0 ); ff_rst_ch_c <= reg_mode_sel(5);
+                    when "0101" => reg_freq_ch_c( 11 downto 8 ) <= dbo( 3 downto 0 ); ff_rst_ch_c <= reg_mode_sel(5);
+                    when "0110" => reg_freq_ch_d(  7 downto 0 ) <= dbo( 7 downto 0 ); ff_rst_ch_d <= reg_mode_sel(5);
+                    when "0111" => reg_freq_ch_d( 11 downto 8 ) <= dbo( 3 downto 0 ); ff_rst_ch_d <= reg_mode_sel(5);
+                    when "1000" => reg_freq_ch_e(  7 downto 0 ) <= dbo( 7 downto 0 ); ff_rst_ch_e <= reg_mode_sel(5);
+                    when "1001" => reg_freq_ch_e( 11 downto 8 ) <= dbo( 3 downto 0 ); ff_rst_ch_e <= reg_mode_sel(5);
+                    when "1010" => reg_vol_ch_a( 3 downto 0 )   <= dbo( 3 downto 0 );
+                    when "1011" => reg_vol_ch_b( 3 downto 0 )   <= dbo( 3 downto 0 );
+                    when "1100" => reg_vol_ch_c( 3 downto 0 )   <= dbo( 3 downto 0 );
+                    when "1101" => reg_vol_ch_d( 3 downto 0 )   <= dbo( 3 downto 0 );
+                    when "1110" => reg_vol_ch_e( 3 downto 0 )   <= dbo( 3 downto 0 );
+                    when others => reg_ch_sel(   4 downto 0 )   <= dbo( 4 downto 0 );
+                end case;
+            elsif (clkena = '1') then
+                ff_rst_ch_a <= '0';
+                ff_rst_ch_b <= '0';
+                ff_rst_ch_c <= '0';
+                ff_rst_ch_d <= '0';
+                ff_rst_ch_e <= '0';
+            end if;
 
-    end if;
+            -- mapped i/o port access on b8c0-b8dfh (98e0-98ffh) ... register write
+            if( req = '1' and wrt = '1' and adr(7 downto 5) = "110" )then
+                reg_mode_sel <= dbo;
+            end if;
 
-  end process;
-
-  ----------------------------------------------------------------
-  -- SCC register access
-  ----------------------------------------------------------------
-  process(clk21m, reset)
-
-  begin
-
-    if (reset = '1') then
-
-      ireq   <= '0';
-
-      SccFreqChA <= (others => '0');
-      SccFreqChB <= (others => '0');
-      SccFreqChC <= (others => '0');
-      SccFreqChD <= (others => '0');
-      SccFreqChE <= (others => '0');
-      SccVolChA  <= (others => '0');
-      SccVolChB  <= (others => '0');
-      SccVolChC  <= (others => '0');
-      SccVolChD  <= (others => '0');
-      SccVolChE  <= (others => '0');
-      SccChanSel <= (others => '0');
-
-      SccModeSel <= (others => '0');
-
-      SccRstChA  <= '0';
-      SccRstChB  <= '0';
-      SccRstChC  <= '0';
-      SccRstChD  <= '0';
-      SccRstChE  <= '0';
-
-    elsif (clk21m'event and clk21m = '1') then
-
-      -- Mapped I/O port access on B8A0-B8AFh (9880-988Fh) ... Register write
-      if (req = '1' and ireq = '0' and adr(7 downto 5) = "101" and wrt = '1') then
-        case adr(3 downto 0) is
-          when "0000" => SccFreqChA(7 downto 0)  <= dbo(7 downto 0); SccRstChA <= SccModeSel(5);
-          when "0001" => SccFreqChA(11 downto 8) <= dbo(3 downto 0); SccRstChA <= SccModeSel(5);
-          when "0010" => SccFreqChB(7 downto 0)  <= dbo(7 downto 0); SccRstChB <= SccModeSel(5);
-          when "0011" => SccFreqChB(11 downto 8) <= dbo(3 downto 0); SccRstChB <= SccModeSel(5);
-          when "0100" => SccFreqChC(7 downto 0)  <= dbo(7 downto 0); SccRstChC <= SccModeSel(5);
-          when "0101" => SccFreqChC(11 downto 8) <= dbo(3 downto 0); SccRstChC <= SccModeSel(5);
-          when "0110" => SccFreqChD(7 downto 0)  <= dbo(7 downto 0); SccRstChD <= SccModeSel(5);
-          when "0111" => SccFreqChD(11 downto 8) <= dbo(3 downto 0); SccRstChD <= SccModeSel(5);
-          when "1000" => SccFreqChE(7 downto 0)  <= dbo(7 downto 0); SccRstChE <= SccModeSel(5);
-          when "1001" => SccFreqChE(11 downto 8) <= dbo(3 downto 0); SccRstChE <= SccModeSel(5);
-          when "1010" => SccVolChA(3 downto 0)   <= dbo(3 downto 0);
-          when "1011" => SccVolChB(3 downto 0)   <= dbo(3 downto 0);
-          when "1100" => SccVolChC(3 downto 0)   <= dbo(3 downto 0);
-          when "1101" => SccVolChD(3 downto 0)   <= dbo(3 downto 0);
-          when "1110" => SccVolChE(3 downto 0)   <= dbo(3 downto 0);
-          when others => SccChanSel(4 downto 0)  <= dbo(4 downto 0);
-        end case;
-      elsif (clkena = '1') then
-        SccRstChA <= '0'; SccRstChB <= '0'; SccRstChC <= '0'; SccRstChD <= '0'; SccRstChE <= '0';
-      end if;
-
-      -- Mapped I/O port access on B8C0-B8DFh (98E0-98FFh) ... Register write
-      if (req = '1' and wrt = '1' and adr(7 downto 5) = "110") then
-        SccModeSel <= dbo;
-      end if;
-
-      ireq <= req;
-
-    end if;
-
-  end process;
-
-  -- Mapped I/O port access on B800-BFFFh (9800-9FFFh) ... Wave memory access
-  WaveCe <= '1' when req = '1' and ireq = '0' else '0';
-  WaveWe <= wrt when req = '1' and ireq = '0' else '0';
-  ack    <= ireq;
-
-  ----------------------------------------------------------------
-  -- Tone generator
-  ----------------------------------------------------------------
-  process(clk21m, reset)
-
-    variable SccCntChA : std_logic_vector(11 downto 0);
-    variable SccCntChB : std_logic_vector(11 downto 0);
-    variable SccCntChC : std_logic_vector(11 downto 0);
-    variable SccCntChD : std_logic_vector(11 downto 0);
-    variable SccCntChE : std_logic_vector(11 downto 0);
-
-  begin
-
-    if (reset = '1') then
-
-      SccCntChA := (others => '0');
-      SccCntChB := (others => '0');
-      SccCntChC := (others => '0');
-      SccCntChD := (others => '0');
-      SccCntChE := (others => '0');
-
-      SccPtrChA <= (others => '0');
-      SccPtrChB <= (others => '0');
-      SccPtrChC <= (others => '0');
-      SccPtrChD <= (others => '0');
-      SccPtrChE <= (others => '0');
-
-    elsif (clk21m'event and clk21m = '1') then
-      if (clkena = '1') then
-
-        if (SccFreqChA(11 downto 3) = "000000000" or SccRstChA = '1') then
-          SccPtrChA <= "00000";
-          SccCntChA := SccFreqChA;
-        elsif (SccCntChA = X"000") then
-          SccPtrChA <= SccPtrChA + 1;
-          SccCntChA := SccFreqChA;
-        else
-          SccCntChA := SccCntChA - 1;
+            ff_req_dl <= req;
         end if;
+    end process;
 
-        if (SccFreqChB(11 downto 3) = "000000000" or SccRstChB = '1') then
-          SccPtrChB <= "00000";
-          SccCntChB := SccFreqChB;
-        elsif (SccCntChB = X"000") then
-          SccPtrChB <= SccPtrChB + 1;
-          SccCntChB := SccFreqChB;
-        else
-          SccCntChB := SccCntChB - 1;
+    -- mapped i/o port access on b800-bfffh (9800-9fffh) ... wave memory access
+    w_wave_ce   <= '1'  when( req = '1' and ff_req_dl = '0' )else '0';
+    w_wave_we   <= wrt  when( req = '1' and ff_req_dl = '0' )else '0';
+    ack     <= ff_req_dl;
+
+    ----------------------------------------------------------------
+    -- tone generator
+    ----------------------------------------------------------------
+    process(clk21m, reset)
+        variable ff_cnt_ch_a : std_logic_vector( 11 downto 0 );
+        variable ff_cnt_ch_b : std_logic_vector( 11 downto 0 );
+        variable ff_cnt_ch_c : std_logic_vector( 11 downto 0 );
+        variable ff_cnt_ch_d : std_logic_vector( 11 downto 0 );
+        variable ff_cnt_ch_e : std_logic_vector( 11 downto 0 );
+    begin
+        if (reset = '1') then
+            ff_cnt_ch_a := (others => '0');
+            ff_cnt_ch_b := (others => '0');
+            ff_cnt_ch_c := (others => '0');
+            ff_cnt_ch_d := (others => '0');
+            ff_cnt_ch_e := (others => '0');
+
+            ff_ptr_ch_a <= (others => '0');
+            ff_ptr_ch_b <= (others => '0');
+            ff_ptr_ch_c <= (others => '0');
+            ff_ptr_ch_d <= (others => '0');
+            ff_ptr_ch_e <= (others => '0');
+        elsif (clk21m'event and clk21m = '1') then
+            if (clkena = '1') then
+
+                if (reg_freq_ch_a(11 downto 3) = "000000000" or ff_rst_ch_a = '1') then
+                    ff_ptr_ch_a <= "00000";
+                    ff_cnt_ch_a := reg_freq_ch_a;
+                elsif (ff_cnt_ch_a = x"000") then
+                    ff_ptr_ch_a <= ff_ptr_ch_a + 1;
+                    ff_cnt_ch_a := reg_freq_ch_a;
+                else
+                    ff_cnt_ch_a := ff_cnt_ch_a - 1;
+                end if;
+
+                if (reg_freq_ch_b(11 downto 3) = "000000000" or ff_rst_ch_b = '1') then
+                    ff_ptr_ch_b <= "00000";
+                    ff_cnt_ch_b := reg_freq_ch_b;
+                elsif (ff_cnt_ch_b = x"000") then
+                    ff_ptr_ch_b <= ff_ptr_ch_b + 1;
+                    ff_cnt_ch_b := reg_freq_ch_b;
+                else
+                    ff_cnt_ch_b := ff_cnt_ch_b - 1;
+                end if;
+
+                if (reg_freq_ch_c(11 downto 3) = "000000000" or ff_rst_ch_c = '1') then
+                    ff_ptr_ch_c <= "00000";
+                    ff_cnt_ch_c := reg_freq_ch_c;
+                elsif (ff_cnt_ch_c = x"000") then
+                    ff_ptr_ch_c <= ff_ptr_ch_c + 1;
+                    ff_cnt_ch_c := reg_freq_ch_c;
+                else
+                    ff_cnt_ch_c := ff_cnt_ch_c - 1;
+                end if;
+
+                if (reg_freq_ch_d(11 downto 3) = "000000000" or ff_rst_ch_d = '1') then
+                    ff_ptr_ch_d <= "00000";
+                    ff_cnt_ch_d := reg_freq_ch_d;
+                elsif (ff_cnt_ch_d = x"000") then
+                    ff_ptr_ch_d <= ff_ptr_ch_d + 1;
+                    ff_cnt_ch_d := reg_freq_ch_d;
+                else
+                    ff_cnt_ch_d := ff_cnt_ch_d - 1;
+                end if;
+
+                if (reg_freq_ch_e(11 downto 3) = "000000000" or ff_rst_ch_e = '1') then
+                    ff_ptr_ch_e <= "00000";
+                    ff_cnt_ch_e := reg_freq_ch_e;
+                elsif (ff_cnt_ch_e = x"000") then
+                    ff_ptr_ch_e <= ff_ptr_ch_e + 1;
+                    ff_cnt_ch_e := reg_freq_ch_e;
+                else
+                    ff_cnt_ch_e := ff_cnt_ch_e - 1;
+                end if;
+
+            end if;
         end if;
+    end process;
 
-        if (SccFreqChC(11 downto 3) = "000000000" or SccRstChC = '1') then
-          SccPtrChC <= "00000";
-          SccCntChC := SccFreqChC;
-        elsif (SccCntChC = X"000") then
-          SccPtrChC <= SccPtrChC + 1;
-          SccCntChC := SccFreqChC;
-        else
-          SccCntChC := SccCntChC - 1;
+    ----------------------------------------------------------------
+    -- wave memory control
+    ----------------------------------------------------------------
+    w_wave_adr   <= adr                 when( w_wave_ce = '1'   )else
+                ("000" & ff_ptr_ch_a)   when( ff_ch_num = "000" )else
+                ("001" & ff_ptr_ch_b)   when( ff_ch_num = "001" )else
+                ("010" & ff_ptr_ch_c)   when( ff_ch_num = "010" )else
+                ("011" & ff_ptr_ch_d)   when( ff_ch_num = "011" )else
+                ("100" & ff_ptr_ch_e);
+
+    wavemem : ram
+    port map(
+        adr => w_wave_adr   ,
+        clk => clk21m       ,
+        we  => w_wave_we    ,
+        dbo => dbo          ,
+        dbi => ram_dbi
+    );
+
+    --  wave memory read
+    process( reset, clk21m )
+    begin
+        if( reset = '1' )then
+            dbi <= (others => '1');
+        elsif( clk21m'event and clk21m = '1' )then
+            -- mapped i/o port access on b800-bfffh (9800-9fffh) ... wave memory read data
+            if( ff_wave_ce = '1' )then
+                dbi <= ram_dbi;
+            end if;
         end if;
+    end process;
 
-        if (SccFreqChD(11 downto 3) = "000000000" or SccRstChD = '1') then
-          SccPtrChD <= "00000";
-          SccCntChD := SccFreqChD;
-        elsif (SccCntChD = X"000") then
-          SccPtrChD <= SccPtrChD + 1;
-          SccCntChD := SccFreqChD;
-        else
-          SccCntChD := SccCntChD - 1;
+    ----------------------------------------------------------------
+    -- delay signal
+    ----------------------------------------------------------------
+    process( reset, clk21m )
+    begin
+        if( reset = '1' )then
+            ff_wave_ce      <= '0';
+            ff_wave_ce_dl   <= '0';
+            ff_wave_dat     <= (others => '0');
+            ff_ch_num_dl    <= (others => '0');
+        elsif( clk21m'event and clk21m = '1' )then
+            ff_wave_ce      <= w_wave_ce;
+            ff_wave_ce_dl   <= ff_wave_ce;
+            ff_wave_dat     <= ram_dbi;
+            ff_ch_num_dl    <= ff_ch_num;
         end if;
+    end process;
 
-        if (SccFreqChE(11 downto 3) = "000000000" or SccRstChE = '1') then
-          SccPtrChE <= "00000";
-          SccCntChE := SccFreqChE;
-        elsif (SccCntChE = X"000") then
-          SccPtrChE <= SccPtrChE + 1;
-          SccCntChE := SccFreqChE;
-        else
-          SccCntChE := SccCntChE - 1;
+    ----------------------------------------------------------------
+    -- mixer control
+    ----------------------------------------------------------------
+    with ff_ch_num_dl select w_ch_dec <=
+        "00001" when "001",
+        "00010" when "010",
+        "00100" when "011",
+        "01000" when "100",
+        "10000" when "101",
+        "00000" when others;
+
+    w_ch_bit    <=  (w_ch_dec(0) and reg_ch_sel(0)) or
+                    (w_ch_dec(1) and reg_ch_sel(1)) or
+                    (w_ch_dec(2) and reg_ch_sel(2)) or
+                    (w_ch_dec(3) and reg_ch_sel(3)) or
+                    (w_ch_dec(4) and reg_ch_sel(4));
+
+    w_ch_mask   <=  (others => w_ch_bit);
+
+    with ff_ch_num_dl select w_ch_vol <=
+        reg_vol_ch_a        when "001",
+        reg_vol_ch_b        when "010",
+        reg_vol_ch_c        when "011",
+        reg_vol_ch_d        when "100",
+        reg_vol_ch_e        when "101",
+        (others => '0') when others;
+
+    w_wave  <=  (w_ch_mask and ff_wave_dat);        -- 8bit 二の補数
+
+    u_mul: scc_wave_mul
+    port map (
+        a   => w_wave   ,   -- 8bit 二の補数
+        b   => w_ch_vol ,   -- 4bit バイナリ（符号無し）
+        c   => w_mul        -- 12bit 二の補数
+    );
+
+    -- -------------------------------------------------------------
+    --  ff_ch_num   X 0   X 1   X 2   X 3   X 4   X 5   X 0
+    --  ff_ch_num_dl      X 0   X 1   X 2   X 3   X 4   X 5   X 0
+    --  w_wave_adr  X chA X chB X chC X chD X chE
+    --  ram_dbi           X chA X chB X chC X chD X chE
+    --  ff_wave_dat             X chA X chB X chC X chD X chE
+    --  ff_mix                        X a   X ab  X a-c X a-d X a-e X 0
+    --  wave                                                        X a-e
+    -- -------------------------------------------------------------
+    --  w_wave_ce   X 0   X 1   X 0
+    --  ff_wave_ce  X 0         X 1   X 0
+    --  ff_wave_ce_dl     X 0         X 1   X 0
+    --
+    --  ff_ch_num   X 0   X 1         X 2   X 3   X 4   X 5   X 0
+    --  ff_ch_num_dl      X 0   X 1         X 2   X 3   X 4   X 5   X 0
+    --  w_wave_adr  X chA X chB       X chC X chD X chE
+    --  ram_dbi           X chA X chB       X chC X chD X chE
+    --  ff_wave_dat             X chA X chB       X chC X chD X chE
+    --  ff_mix                        X a         X ab  X a-c X a-d X a-e X 0
+    --  wave                                                              X a-e
+    -- -------------------------------------------------------------
+    --  w_wave_ce   X 0                           X 1   X 0
+    --  ff_wave_ce  X 0                                 X 1   X 0
+    --  ff_wave_ce_dl     X 0                                 X 1   X 0   X
+    --                                                               ~~~~~
+    --  ff_ch_num   X 0   X 1   X 2   X 3   X 4   X 5   X 0         X 1
+    --  ff_ch_num_dl      X 0   X 1   X 2   X 3   X 4   X 5   X 0         X 1   X 2   X
+    --                                                         ~~~~~~~~~~~
+    --  w_wave_adr  X chA X chB X chC X chD X chE       X chA       X chB X chC X
+    --  ram_dbi           X chA X chB X chC X chD X chE       X chA       X chB X chC X
+    --  ff_wave_dat             X chA X chB X chC X chD X chE       X chA       X chB X chC X
+    --  ff_mix                        X a   X ab  X a-c X a-d X a-e       X 0   X a   X ab  X
+    --  wave                                                              X a-e
+    --                                                                     ~~~~~
+    --  wave は、ff_wave_ce_dl = 0 and ff_ch_num_dl = 0 のとき ff_mix を取り込む
+    ----------------------------------------------------------------
+    process( reset, clk21m )
+    begin
+        if( reset = '1' )then
+            ff_ch_num <= "000";
+        elsif( clk21m'event and clk21m = '1' )then
+            if( ff_wave_ce = '0' )then
+                if( ff_ch_num = "101" )then
+                    ff_ch_num <= "000";
+                else
+                    ff_ch_num <= ff_ch_num + 1;
+                end if;
+            end if;
         end if;
+    end process;
 
-      end if;
-    end if;
+    --  mixer
+    process( reset, clk21m )
+    begin
+        if( reset = '1' )then
+            ff_mix  <= (others => '0');
+        elsif( clk21m'event and clk21m = '1' )then
+            if( ff_wave_ce_dl = '0' )then
+                if( ff_ch_num_dl = "000" )then
+                    ff_mix  <=  (others => '0');
+                else
+                    ff_mix  <=  (w_mul(11) & w_mul(11) & w_mul(11) & w_mul) + ff_mix;   -- 15bit 二の補数
+                end if;
+            end if;
+        end if;
+    end process;
 
-  end process;
+    --  wave out
+    process( reset, clk21m )
+    begin
+        if( reset = '1' )then
+            ff_wave <= (others => '0');
+        elsif( clk21m'event and clk21m = '1' )then
+            if( ff_wave_ce_dl = '0' )then
+                if( ff_ch_num_dl = "000" )then
+                    ff_wave <= ff_mix;  -- 15bit 二の補数
+                else
+                    --  hold
+                end if;
+            end if;
+        end if;
+    end process;
 
-  ----------------------------------------------------------------
-  -- Wave memory control
-  ----------------------------------------------------------------
-  WaveAdr  <= adr                 when WaveCe   = '1'   else
-              ("000" & SccPtrChA) when SccChNum = "000" else
-              ("001" & SccPtrChB) when SccChNum = "001" else
-              ("010" & SccPtrChC) when SccChNum = "010" else
-              ("011" & SccPtrChD) when SccChNum = "011" else
-              ("100" & SccPtrChE);
-
-  iWaveDat <= dbo;
-
-  WaveMem : ram port map(WaveAdr, clk21m, WaveWe, iWaveDat, oWaveDat);
-
-  ----------------------------------------------------------------
-  -- Mixer control
-  ----------------------------------------------------------------
-  process(clk21m, reset)
-
-    variable iWaveCe : std_logic;
-    variable jWaveCe : std_logic;
-    variable jNum    : std_logic_vector(2 downto 0);
-    variable jwavdat : std_logic_vector(7 downto 0);
-    variable SccMix  : std_logic_vector(14 downto 0);
-
-  begin
-
-    if (reset = '1') then
-
-      iWaveCe := '0';
-      jWaveCe := '0';
-      SccMix  := (others => '0');
-      wave    <= (others => '0');
-      dbi     <= (others => '1');
-      jNum    := (others => '0');
-      jwavdat := (others => '0');
-
-    elsif (clk21m'event and clk21m = '1') then
-
-      if (jWaveCe = '0') then
-        case jNum is
-          when "001"  => SccMix := "000" & ((SccChanSel(0) & SccChanSel(0) & SccChanSel(0) & SccChanSel(0) &
-                                             SccChanSel(0) & SccChanSel(0) & SccChanSel(0) & SccChanSel(0)
-                                             and jwavdat) xor "10000000") * SccVolChA;
-          when "010"  => SccMix := "000" & ((SccChanSel(1) & SccChanSel(1) & SccChanSel(1) & SccChanSel(1) &
-                                             SccChanSel(1) & SccChanSel(1) & SccChanSel(1) & SccChanSel(1)
-                                             and jwavdat) xor "10000000") * SccVolChB + SccMix;
-          when "011"  => SccMix := "000" & ((SccChanSel(2) & SccChanSel(2) & SccChanSel(2) & SccChanSel(2) &
-                                             SccChanSel(2) & SccChanSel(2) & SccChanSel(2) & SccChanSel(2)
-                                             and jwavdat) xor "10000000") * SccVolChC + SccMix;
-          when "100"  => SccMix := "000" & ((SccChanSel(3) & SccChanSel(3) & SccChanSel(3) & SccChanSel(3) &
-                                             SccChanSel(3) & SccChanSel(3) & SccChanSel(3) & SccChanSel(3)
-                                             and jwavdat) xor "10000000") * SccVolChD + SccMix;
-          when "101"  => SccMix := "000" & ((SccChanSel(4) & SccChanSel(4) & SccChanSel(4) & SccChanSel(4) &
-                                             SccChanSel(4) & SccChanSel(4) & SccChanSel(4) & SccChanSel(4)
-                                             and jwavdat) xor "10000000") * SccVolChE + SccMix;
-          when others => null;
-        end case;
-      end if;
-
-      jWaveCe := iWaveCe;
-      jNum    := SccChNum;
-      jwavdat := oWaveDat;
-
-      -- Mapped I/O port access on B800-BFFFh (9800-9FFFh) ... Wave memory read data
-      if (iWaveCe = '1') then
-        dbi <= oWaveDat;
-      end if;
-
-      if (SccClkEna = "111") then
-        wave     <= SccMix(14 downto 7);
-        SccChNum <= "000";
-      elsif (iWaveCe = '0') then
-        SccChNum <= SccChNum + 1;
-      end if;
-
-      iWaveCe := WaveCe;
-
-    end if;
-
-  end process;
-
+    wave <= ff_wave;
 end rtl;

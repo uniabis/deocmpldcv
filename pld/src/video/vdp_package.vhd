@@ -38,18 +38,18 @@
 --     copyright notice, this list of conditions and the following
 --     disclaimer in the documentation and/or other materials
 --     provided with the distribution.
---  3. Redistributions may not be sold, nor may they be used in a 
+--  3. Redistributions may not be sold, nor may they be used in a
 --     commercial product or activity without specific prior written
 --     permission.
 --
---  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
---  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+--  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+--  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 --  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
 --  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
 --  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
 --  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 --  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
---  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+--  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 --  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 --  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 --  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
@@ -75,422 +75,89 @@
 -- JP: 型変換用の関数などが定義されています。
 --
 
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
+LIBRARY IEEE;
+    USE IEEE.STD_LOGIC_1164.ALL;
+    USE IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-package vdp_package is
+PACKAGE VDP_PACKAGE IS
 
-  -- VDP ID
-  constant VDP_ID : std_logic_vector(4 downto 0) := "00000";  -- V9938
---  constant VDP_ID : std_logic_vector(4 downto 0) := "00001";  -- unknown
---  constant VDP_ID : std_logic_vector(4 downto 0) := "00010";  -- V9958
+    -- VDP ID
+--  CONSTANT VDP_ID : STD_LOGIC_VECTOR(  4 DOWNTO 0 ) := "00000";  -- V9938
+    CONSTANT VDP_ID : STD_LOGIC_VECTOR(  4 DOWNTO 0 ) := "00010";  -- V9958
 
-  -- switch the default display mode (NTSC or VGA)
---  constant DISPLAY_MODE : std_logic := '0';  -- NTSC
-  constant DISPLAY_MODE : std_logic := '1';  -- VGA
+    -- display start position ( when adjust=(0,0) )
+    -- [from V9938 Technical Data Book]
+    -- Horizontal Display Parameters
+    --  [non TEXT]
+    --   * Total Display      1368 clks  - a
+    --   * Right Border         59 clks  - b
+    --   * Right Blanking       27 clks  - c
+    --   * H-Sync Pulse Width  100 clks  - d
+    --   * Left Blanking       102 clks  - e
+    --   * Left Border          56 clks  - f
+    -- OFFSET_X is the position when preDotCounter_x is -8. So,
+    --    => (d+e+f-8*4-8*4)/4 => (100+102+56)/4 - 16 => 48 + 1 = 49
+    --
+    -- Vertical Display Parameters (NTSC)
+    --                            [192 Lines]  [212 Lines]
+    --                            [Even][Odd]  [Even][Odd]
+    --   * V-Sync Pulse Width          3    3       3    3 lines - g
+    --   * Top Blanking               13 13.5      13 13.5 lines - h
+    --   * Top Border                 26   26      16   16 lines - i
+    --   * Display Time              192  192     212  212 lines - j
+    --   * Bottom Border            25.5   25    15.5   15 lines - k
+    --   * Bottom Blanking             3    3       3    3 lines - l
+    -- OFFSET_Y is the start line of Top Border (192 Lines Mode)
+    --    => l+g+h => 3 + 3 + 13 = 19
+    --
 
-  -- JP: 1ラインのクロック数
-  -- JP: 4の倍数でなければならない
-  constant CLOCKS_PER_LINE : integer := 1368;  -- 342x4
+    CONSTANT CLOCKS_PER_LINE                    : INTEGER := 1368;                              -- 342*4
 
-  constant ADJUST0_X_NTSC : std_logic_vector( 6 downto 0) := "0110110";    -- = 220/4;
-  constant ADJUST0_X_VGA  : std_logic_vector( 6 downto 0) := "0011011";    -- = 220/4/2;
-  constant ADJUST0_Y : std_logic_vector( 6 downto 0) := "0101110";     -- = 3+3+13+26+1 = 46
-  constant ADJUST0_Y_212 : std_logic_vector( 6 downto 0) := "0100100"; -- = 3+3+13+16+1 = 36
+    -- LEFT-TOP POSITION OF VISIBLE AREA
+    CONSTANT OFFSET_X                           : STD_LOGIC_VECTOR(  6 DOWNTO 0 ) := "0110001"; -- 49
+    SHARED VARIABLE OFFSET_Y                    : STD_LOGIC_VECTOR(  6 DOWNTO 0 );              -- 19 => managed by Switched I/O Ports
 
-  component ram
-    port(
-      adr     : in  std_logic_vector(7 downto 0);
-      clk     : in  std_logic;
-      we      : in  std_logic;
-      dbo     : in  std_logic_vector(7 downto 0);
-      dbi     : out std_logic_vector(7 downto 0)
-      );
-  end component;
+    CONSTANT LED_TV_X_NTSC                      : INTEGER := -3;
+    CONSTANT LED_TV_Y_NTSC                      : INTEGER := 1;
+    CONSTANT LED_TV_X_PAL                       : INTEGER := -2;
+    CONSTANT LED_TV_Y_PAL                       : INTEGER := 3;
 
-  component ntsc
-    port(
-      -- VDP clock ... 21.477MHz
-      clk21m  : in std_logic;
-      reset   : in std_logic;
+--  CONSTANT DISPLAY_OFFSET_NTSC                : INTEGER := 0;
+--  CONSTANT DISPLAY_OFFSET_PAL                 : INTEGER := 27;
 
-      -- Video Input
-      videoRin : in std_logic_vector( 5 downto 0);
-      videoGin : in std_logic_vector( 5 downto 0);
-      videoBin : in std_logic_vector( 5 downto 0);
-      videoHSin_n : in std_logic;
-      videoVSin_n : in std_logic;
-      hCounterIn : in std_logic_vector(10 downto 0);
-      vCounterIn : in std_logic_vector(10 downto 0);
-      interlaceMode : in std_logic;
-      
-      -- Video Output
-      videoRout : out std_logic_vector( 5 downto 0);
-      videoGout : out std_logic_vector( 5 downto 0);
-      videoBout : out std_logic_vector( 5 downto 0);
-      videoHSout_n : out std_logic;
-      videoVSout_n : out std_logic
-      );
-  end component;
+--  CONSTANT SCAN_LINE_OFFSET_192               : INTEGER := 24;
+--  CONSTANT SCAN_LINE_OFFSET_212               : INTEGER := 14;
 
-  component pal
-    port(
-      -- VDP clock ... 21.477MHz
-      clk21m  : in std_logic;
-      reset   : in std_logic;
+--  CONSTANT LAST_LINE_NTSC                     : INTEGER := 262;                               -- 262 & 262.5 => 3 + 13 + 26 + 192 + 25 + 3
+--  CONSTANT LAST_LINE_PAL                      : INTEGER := 313;                               -- 312.5 & 313 => 3 + 13 + 53 + 192 + 49 + 3
 
-      -- Video Input
-      videoRin : in std_logic_vector( 5 downto 0);
-      videoGin : in std_logic_vector( 5 downto 0);
-      videoBin : in std_logic_vector( 5 downto 0);
-      videoHSin_n : in std_logic;
-      videoVSin_n : in std_logic;
-      hCounterIn : in std_logic_vector(10 downto 0);
-      vCounterIn : in std_logic_vector(10 downto 0);
-      interlaceMode : in std_logic;
-      
-      -- Video Output
-      videoRout : out std_logic_vector( 5 downto 0);
-      videoGout : out std_logic_vector( 5 downto 0);
-      videoBout : out std_logic_vector( 5 downto 0);
-      videoHSout_n : out std_logic;
-      videoVSout_n : out std_logic
-      );
-  end component;
-  
-  component vga
-    port(
-      -- VDP clock ... 21.477MHz
-      clk21m  : in std_logic;
-      reset   : in std_logic;
+--  CONSTANT FIRST_LINE_192_NTSC                : INTEGER := DISPLAY_OFFSET_NTSC + SCAN_LINE_OFFSET_192;
+--  CONSTANT FIRST_LINE_212_NTSC                : INTEGER := DISPLAY_OFFSET_NTSC + SCAN_LINE_OFFSET_212;
+--  CONSTANT FIRST_LINE_192_PAL                 : INTEGER := DISPLAY_OFFSET_PAL + SCAN_LINE_OFFSET_192;
+--  CONSTANT FIRST_LINE_212_PAL                 : INTEGER := DISPLAY_OFFSET_PAL + SCAN_LINE_OFFSET_212;
 
-      -- Video Input
-      videoRin : in std_logic_vector( 5 downto 0);
-      videoGin : in std_logic_vector( 5 downto 0);
-      videoBin : in std_logic_vector( 5 downto 0);
-      videoHSin_n : in std_logic;
-      videoVSin_n : in std_logic;
-      hCounterIn : in std_logic_vector(10 downto 0);
-      vCounterIn : in std_logic_vector(10 downto 0);
-      interlaceMode : in std_logic;
-      
-      -- Video Output
-      videoRout : out std_logic_vector( 5 downto 0);
-      videoGout : out std_logic_vector( 5 downto 0);
-      videoBout : out std_logic_vector( 5 downto 0);
-      videoHSout_n : out std_logic;
-      videoVSout_n : out std_logic
-      );
-  end component;
+--  CONSTANT INTERNAL_X_INIT                    : INTEGER := 102;
+--  CONSTANT PRE_DOTCOUNTER_X_START             : INTEGER := -30;
+--  CONSTANT PRE_DOTCOUNTER_Y_START             : INTEGER := -2;
+--  CONSTANT PRE_DOTCOUNTER_Y_START_192_NTSC    : INTEGER := PRE_DOTCOUNTER_Y_START - DISPLAY_OFFSET_NTSC - SCAN_LINE_OFFSET_192;
+--  CONSTANT PRE_DOTCOUNTER_Y_START_212_NTSC    : INTEGER := PRE_DOTCOUNTER_Y_START - DISPLAY_OFFSET_NTSC - SCAN_LINE_OFFSET_212;
+--  CONSTANT PRE_DOTCOUNTER_Y_START_192_PAL     : INTEGER := PRE_DOTCOUNTER_Y_START - DISPLAY_OFFSET_PAL - SCAN_LINE_OFFSET_192;
+--  CONSTANT PRE_DOTCOUNTER_Y_START_212_PAL     : INTEGER := PRE_DOTCOUNTER_Y_START - DISPLAY_OFFSET_PAL - SCAN_LINE_OFFSET_212;
 
-  component doublebuf
-    port (
-         clk        : in  std_logic;
-         xPositionW : in  std_logic_vector(9 downto 0);
-         xPositionR : in  std_logic_vector(9 downto 0);
-         evenOdd    : in  std_logic;
-         we         : in  std_logic;
-         dataRin    : in  std_logic_vector(5 downto 0);
-         dataGin    : in  std_logic_vector(5 downto 0);
-         dataBin    : in  std_logic_vector(5 downto 0);
-         dataRout   : out  std_logic_vector(5 downto 0);
-         dataGout   : out  std_logic_vector(5 downto 0);
-         dataBout   : out  std_logic_vector(5 downto 0)
-        );
-  end component;
+    CONSTANT LEFT_BORDER                        : INTEGER := 235;
+--  CONSTANT DISPLAY_AREA                       : INTEGER := 1024;
 
-  component linebuf
-    port (
-         address  : in  std_logic_vector(9 downto 0);
-         inclock  : in  std_logic;
-         we       : in  std_logic;
-         data     : in  std_logic_vector(5 downto 0);
-         q        : out std_logic_vector(5 downto 0)
-        );
-  end component;
+--  CONSTANT VISIBLE_AREA_SX                    : INTEGER := LEFT_BORDER;
+--  CONSTANT VISIBLE_AREA_EX                    : INTEGER := CLOCKS_PER_LINE;
 
-  component text12
-    port(
-      -- VDP clock ... 21.477MHz
-      clk21m  : in std_logic;
-      reset   : in std_logic;
+--  CONSTANT H_BLANKING_START                   : INTEGER := CLOCKS_PER_LINE - 59 - 27 + 1;
 
-      dotState : in std_logic_vector(1 downto 0);
-      dotCounterX : in std_logic_vector(8 downto 0);
-      dotCounterY : in std_logic_vector(8 downto 0);
+    CONSTANT V_BLANKING_START_192_NTSC          : INTEGER := 240;
+    CONSTANT V_BLANKING_START_212_NTSC          : INTEGER := 250;
+    CONSTANT V_BLANKING_START_192_PAL           : INTEGER := 263;
+    CONSTANT V_BLANKING_START_212_PAL           : INTEGER := 273;
 
-      vdpModeText1: in std_logic;
-      vdpModeText2: in std_logic;
+    SHARED VARIABLE DEBUG_ENA                   : INTEGER;
+    SHARED VARIABLE BREAK_POINT                 : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
 
-      -- registers
-      vdpR7FrameColor : in std_logic_vector( 7 downto 0);
-      vdpR12BlinkColor : in std_logic_vector( 7 downto 0);
-      vdpR13BlinkPeriod : in std_logic_vector( 7 downto 0);
-      
-      vdpR2PtnNameTblBaseAddr : in std_logic_vector(6 downto 0);
-      vdpR4PtnGeneTblBaseAddr : in std_logic_vector(5 downto 0);
-      vdpR10R3ColorTblBaseAddr : in std_logic_vector(10 downto 0);
-
-      --
-      pRamDat : in std_logic_vector(7 downto 0);
-      pRamAdr : out std_logic_vector(16 downto 0);
-      txVramReadEn : out std_logic;
-
-      pColorCode : out std_logic_vector(3 downto 0)
-      );
-  end component;
-
-  component graphic123M
-    port(
-      -- VDP clock ... 21.477MHz
-      clk21m  : in std_logic;
-      reset   : in std_logic;
-
-      dotState : in std_logic_vector(1 downto 0);
-      eightDotState : in std_logic_vector(2 downto 0);
-      dotCounterX : in std_logic_vector(8 downto 0);
-      dotCounterY : in std_logic_vector(8 downto 0);
-
-      vdpModeMulti: in std_logic;
-      vdpModeGraphic1: in std_logic;
-      vdpModeGraphic2: in std_logic;
-      vdpModeGraphic3: in std_logic;
-
-      -- registers
-      VdpR2PtnNameTblBaseAddr : in std_logic_vector(6 downto 0);
-      VdpR4PtnGeneTblBaseAddr : in std_logic_vector(5 downto 0);
-      VdpR10R3ColorTblBaseAddr : in std_logic_vector(10 downto 0);
-      --
-      pRamDat : in std_logic_vector(7 downto 0);
-      pRamAdr : out std_logic_vector(16 downto 0);
-
-      pColorCode : out std_logic_vector(3 downto 0)
-      );
-  end component;
-
-  component graphic4567
-    port(
-      -- VDP clock ... 21.477MHz
-      clk21m  : in std_logic;
-      reset   : in std_logic;
-
-      dotState : in std_logic_vector(1 downto 0);
-      eightDotState : in std_logic_vector(2 downto 0);
-      dotCounterX : in std_logic_vector(8 downto 0);
-      dotCounterY : in std_logic_vector(8 downto 0);
-
-      vdpModeGraphic4: in std_logic;
-      vdpModeGraphic5: in std_logic;
-      vdpModeGraphic6: in std_logic;
-      vdpModeGraphic7: in std_logic;
-
-      -- registers
-      VdpR2PtnNameTblBaseAddr : in std_logic_vector(6 downto 0);
-
-      --
-      pRamDat     : in std_logic_vector(7 downto 0);
-      pRamDatPair : in std_logic_vector(7 downto 0);
-      pRamAdr     : out std_logic_vector(16 downto 0);
-
-      pColorCode : out std_logic_vector(7 downto 0)
-      );
-  end component;
-
-  component sprite
-    port(
-      -- VDP clock ... 21.477MHz
-      clk21m  : in std_logic;
-      reset   : in std_logic;
-
-      dotState : in std_logic_vector( 1 downto 0);
-      eightDotState : in std_logic_vector( 2 downto 0);
-
-      dotCounterX  : in std_logic_vector( 8 downto 0);
-      dotCounterYp : in std_logic_vector( 8 downto 0);
-
-      -- VDP Status Registers of SPRITE
-      pVdpS0SpCollisionIncidence : out std_logic;
-      pVdpS0SpOverMapped         : out std_logic;
-      pVdpS0SpOverMappedNum      : out std_logic_vector(4 downto 0);
-      pVdpS3S4SpCollisionX       : out std_logic_vector(8 downto 0);
-      pVdpS5S6SpCollisionY       : out std_logic_vector(8 downto 0);
-      pVdpS0ResetReq             : in  std_logic;
-      pVdpS0ResetAck             : out std_logic;
-      pVdpS5ResetReq             : in  std_logic;
-      pVdpS5ResetAck             : out std_logic;
-      -- VDP Registers
-      vdpR1SpSize : in std_logic;
-      vdpR1SpZoom : in std_logic;
-      vdpR11R5SpAttrTblBaseAddr : in std_logic_vector(9 downto 0);
-      vdpR6SpPtnGeneTblBaseAddr : in std_logic_vector( 5 downto 0);
-      vdpR8Color0On : in std_logic;
-      vdpR8SpOff : in std_logic;
-      vdpR23VStartLine : in std_logic_vector(7 downto 0);
-      spMode2 : in std_logic;
-      vramInterleaveMode : in std_logic;
-
-      spVramAccessing : out std_logic;
-
-      pRamDat : in std_logic_vector( 7 downto 0);
-      pRamAdr : out std_logic_vector(16 downto 0);
-
-      spColorOut  : out std_logic;
-      -- output color
-      spColorCode : out std_logic_vector(3 downto 0)
-      );
-  end component;
-
-  component spinforam
-   port (
-         address  : in  std_logic_vector(2 downto 0);
-         inclock  : in  std_logic;
-         we       : in  std_logic;
-         data     : in  std_logic_vector(31 downto 0);
-         q        : out std_logic_vector(31 downto 0)
-        );
-  end component;
-
-  component osd
-    port(
-      -- VDP clock ... 21.477MHz
-      clk21m  : in std_logic;
-      reset   : in std_logic;
-      
-      -- video timing
-      h_counter  : in std_logic_vector(10 downto 0);
-      dotCounterY : in std_logic_vector( 7 downto 0);
-
-      -- pattern name table access
-      locateX    : in std_logic_vector( 5 downto 0);
-      locateY    : in std_logic_vector( 4 downto 0);
-      charCodeIn : in std_logic_vector( 7 downto 0);
-      charWrReq  : in std_logic;
-      charWrAck  : out std_logic;
-
-      -- Video Output
-      videoR     : out std_logic_vector( 3 downto 0);
-      videoG     : out std_logic_vector( 3 downto 0);
-      videoB     : out std_logic_vector( 3 downto 0)
-      );
-  end component;
-
-  -- convert character to 8 bit signed 
-  function char_to_std_logic_vector (char : character) return std_logic_vector;
-  
-end vdp_package;
-
-
--------------------------------------------------------------------------------
---
---  Package Body
---
--------------------------------------------------------------------------------
-package body vdp_package is
-function char_to_std_logic_vector (char : character) return std_logic_vector is
-    variable result: std_logic_vector(7 downto 0);
-  begin 
-    case char is 
-      when ' ' =>  result := X"20";
-      when '!' =>  result := X"21";
-      when '"' =>  result := X"22";
-      when '#' =>  result := X"23";
-      when '$' =>  result := X"24";
-      when '%' =>  result := X"25";
-      when '&' =>  result := X"26";
-      when ''' =>  result := X"27";
-      when '(' =>  result := X"28";
-      when ')' =>  result := X"29";
-      when '*' =>  result := X"2a";
-      when '+' =>  result := X"2b";
-      when ',' =>  result := X"2c";
-      when '-' =>  result := X"2d";
-      when '.' =>  result := X"2e";
-      when '/' =>  result := X"2f";
-      when '0' =>  result := X"30";
-      when '1' =>  result := X"31";
-      when '2' =>  result := X"32";
-      when '3' =>  result := X"33";
-      when '4' =>  result := X"34";
-      when '5' =>  result := X"35";
-      when '6' =>  result := X"36";
-      when '7' =>  result := X"37";
-      when '8' =>  result := X"38";
-      when '9' =>  result := X"39";
-      when ':' =>  result := X"3a";
-      when ';' =>  result := X"3b";
-      when '<' =>  result := X"3c";
-      when '>' =>  result := X"3d";
-      when '=' =>  result := X"3e";
-      when '?' =>  result := X"3f";
-      when '@' =>  result := X"40";
-      when 'A' =>  result := X"41";
-      when 'B' =>  result := X"42";
-      when 'C' =>  result := X"43";
-      when 'D' =>  result := X"44";
-      when 'E' =>  result := X"45";
-      when 'F' =>  result := X"46";
-      when 'G' =>  result := X"47";
-      when 'H' =>  result := X"48";
-      when 'I' =>  result := X"49";
-      when 'J' =>  result := X"4a";
-      when 'K' =>  result := X"4b";
-      when 'L' =>  result := X"4c";
-      when 'M' =>  result := X"4d";
-      when 'N' =>  result := X"4e";
-      when 'O' =>  result := X"4f";
-      when 'P' =>  result := X"50";
-      when 'Q' =>  result := X"51";
-      when 'R' =>  result := X"52";
-      when 'S' =>  result := X"53";
-      when 'T' =>  result := X"54";
-      when 'U' =>  result := X"55";
-      when 'V' =>  result := X"56";
-      when 'W' =>  result := X"57";
-      when 'X' =>  result := X"58";
-      when 'Y' =>  result := X"59";
-      when 'Z' =>  result := X"5a";
-      when '[' =>  result := X"5b";
-      when '\' =>  result := X"5c";
-      when ']' =>  result := X"5d";
-      when '^' =>  result := X"5e";
-      when '_' =>  result := X"5f";
-      when '`' =>  result := X"60";
-      when 'a' =>  result := X"61";
-      when 'b' =>  result := X"62";
-      when 'c' =>  result := X"63";
-      when 'd' =>  result := X"64";
-      when 'e' =>  result := X"65";
-      when 'f' =>  result := X"66";
-      when 'g' =>  result := X"67";
-      when 'h' =>  result := X"68";
-      when 'i' =>  result := X"69";
-      when 'j' =>  result := X"6a";
-      when 'k' =>  result := X"6b";
-      when 'l' =>  result := X"6c";
-      when 'm' =>  result := X"6d";
-      when 'n' =>  result := X"6e";
-      when 'o' =>  result := X"6f";
-      when 'p' =>  result := X"70";
-      when 'q' =>  result := X"71";
-      when 'r' =>  result := X"72";
-      when 's' =>  result := X"73";
-      when 't' =>  result := X"74";
-      when 'u' =>  result := X"75";
-      when 'v' =>  result := X"76";
-      when 'w' =>  result := X"77";
-      when 'x' =>  result := X"78";
-      when 'y' =>  result := X"79";
-      when 'z' =>  result := X"7a";
-      when '{' =>  result := X"7b";
-      when '|' =>  result := X"7c";
-      when '}' =>  result := X"7d";
-      when '~' =>  result := X"7e";
---      when ' ' =>  result := X"7f";
-      when others =>  result := X"20";
-    end case; 
-    
-    return result; 
-  end;
-    
-end vdp_package;
+END VDP_PACKAGE;

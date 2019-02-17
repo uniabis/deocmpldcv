@@ -38,18 +38,18 @@
 --     copyright notice, this list of conditions and the following
 --     disclaimer in the documentation and/or other materials
 --     provided with the distribution.
---  3. Redistributions may not be sold, nor may they be used in a 
+--  3. Redistributions may not be sold, nor may they be used in a
 --     commercial product or activity without specific prior written
 --     permission.
 --
---  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
---  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+--  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+--  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 --  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
 --  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
 --  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
 --  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 --  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
---  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+--  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 --  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 --  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 --  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
@@ -57,7 +57,7 @@
 --
 -------------------------------------------------------------------------------
 -- Contributors
---  
+--
 --   Kazuhiro Tsujikawa
 --     - Bug fixes
 --   Alex Wulms
@@ -77,26 +77,39 @@
 -------------------------------------------------------------------------------
 -- Revision History
 --
+-- 3rd,June,2018 modified by KdL
+--  - Improved the VGA up-scan converter
+--
+-- 15th,March,2017 modified by KdL
+--  - Improved ENAHSYNC, thanks to Grauw
+--
+-- 27th,July,2014 modified by KdL
+--  - Fixed H-SYNC interrupt reset control
+--
+-- 23rd,January,2013 modified by KdL
+--  - Fixed V-SYNC and H-SYNC interrupt
+--  - Added an extra signal to force NTSC/PAL modes
+--
 -- 29th,October,2006 modified by Kunihiko Ohnaka
---   - Insert the license text.
---   - Add the document part below.
+--  - Added the license text
+--  - Added the document part below
 --
 -- 3rd,Sep,2006 modified by Kunihiko Ohnaka
---  - fix several UNKNOWN REALITY problems
---    - Horizontal Sprit problem
---    - Overscan problem
---    - [NOP] zoom demo problem
---    - 'Star Wars Scroll' demo problem
+--  - Fix several UNKNOWN REALITY problems
+--  - Horizontal Sprite problem
+--  - Overscan problem
+--  - [NOP] zoom demo problem
+--  - 'Star Wars Scroll' demo problem
 --
 -- 20th,Aug,2006 modified by Kunihiko Ohnaka
---  - Separate SPRITE module.
---  - Fix the palette rewriting timing problem.
---  - Add interlace double resolution function. (Two page mode)
+--  - Separate SPRITE module
+--  - Fixed the palette rewriting timing problem
+--  - Added the interlace double resolution function (two page mode)
 --
 -- 15th,Aug,2006 modified by Kunihiko Ohnaka
---  - Separate ntsc sync generator module.
---  - Separate screen mode modules.
---  - Fix the sprite posision problem on GRAPHIC6.
+--  - Separate VDP_NTSC sync generator module
+--  - Separate screen mode modules
+--  - Fixed the sprite posision problem on GRAPHIC6
 --
 -- 15th,Jan,2006 modified by Alex Wulms
 -- text 2 mode  : debug blink function
@@ -104,22 +117,22 @@
 -- text 1&2 mode: debug VdpR23 scroll and color "0000" handling
 -- all modi     : precalculate adjustx, adjusty once per line
 
--- 1th,Jan,2006 modified by Alex Wulms
--- Add blink support to text 2 mode
+-- 1st,Jan,2006 modified by Alex Wulms
+-- Added the blink support to text 2 mode
 --
 -- 16th,Aug,2005 modified by Kazuhiro Tsujikawa
 -- JP: TMS9918モードでVRAMインクリメントを下位14ビットに限定
 --
--- 08th,May,2005 modified by Kunihiko Ohnaka
+-- 8th,May,2005 modified by Kunihiko Ohnaka
 -- JP: VGAコンポーネントにInerlaceMode信号を伝えるようにした
 --
 -- 26th,April,2005 modified by Kazuhiro Tsujikawa
 -- JP: VRAMとのデータバス(pRamDbi/pRamDbo)を単方向バス化(SDRAM対応)
 --
--- 08th,November,2004 modified by Kazuhiro Tsujikawa
+-- 8th,November,2004 modified by Kazuhiro Tsujikawa
 -- JP: Vsync/Hsync割り込み修正ミス訂正
 --
--- 03rd,November,2004 modified by Kazuhiro Tsujikawa
+-- 3rd,November,2004 modified by Kazuhiro Tsujikawa
 -- JP: SCREEN6画面周辺色修正→MSX2タイトルロゴ対応
 --
 -- 19th,September,2004 modified by Kazuhiro Tsujikawa
@@ -136,7 +149,7 @@
 -- JP: パレットのRead/Write衝突を修正→ガゼルでのチラツキ対策
 --
 -- 21st,August,2004 modified by Kazuhiro Tsujikawa
--- JP: R#1/IE0(垂直帰線割り込み許可)の動作を修正→GALAGA対策
+-- JP: R1/IE0(垂直帰線割り込み許可)の動作を修正→GALAGA対策
 --
 -- 2nd,August,2004 modified by Kazuhiro Tsujikawa
 -- JP: Screen7/8でのスプライト読み込みアドレスを修正→Snatcher対策
@@ -158,10 +171,10 @@
 --
 -- 26th,June,2004 modified by Kazuhiro Tsujikawa
 -- JP: WebPackでコンパイルするとHMMC/LMMC/LMCMが動作しない不具合を修正
--- JP: onehot sequencer(VdpCmdState) must be initialized by asyncronus reset
+-- JP: onehot sequencer(VdpCmdState) must be initialized by asyncronus RESET
 --
 -- 22nd,June,2004 modified by Kazuhiro Tsujikawa
--- JP: R#1/IE0(垂直帰線割り込み許可)の動作を修正
+-- JP: R1/IE0(垂直帰線割り込み許可)の動作を修正
 -- JP: Ys2でバノアの家に入れる様になった
 --
 -- 13th,June,2004 modified by Kazuhiro Tsujikawa
@@ -172,9 +185,9 @@
 --
 -- 21st,March,2004 modified by Alex Wulms
 -- Several enhancements to command engine:
---   Add PSET,LINE,SRCH,POINT
---   Add screen 6,7,8 support
---   Improve existing commands
+--   Added PSET,LINE,SRCH,POINT
+--   Added the screen 6,7,8 support
+--   Improved the existing commands
 --
 -- 15th,January,2004 modified by Kunihiko Ohnaka
 -- JP: VDPコマンドの実装を開始
@@ -184,11 +197,11 @@
 -- JP: コメントの修正
 --
 -- 30th,December,2003 modified by Kazuhiro Tsujikawa
--- JP: 起動時の画面モードをNTSCと VGAのどちらにするかを，外部入力で切替
+-- JP: 起動時の画面モードをVDP_NTSCと VGAのどちらにするかを，外部入力で切替
 -- JP: DHClk/DLClkを一時的に復活させた
 --
 -- 16th,December,2003 modified by Kunihiko Ohnaka
--- JP: 起動時の画面モードをNTSCと VGAのどちらにするかを，vdp_package.vhd
+-- JP: 起動時の画面モードをVDP_NTSCと VGAのどちらにするかを，vdp_package.vhd
 -- JP: 内で定義された定数で切替えるようにした．
 --
 -- 10th,December,2003 modified by Kunihiko Ohnaka
@@ -231,2484 +244,1558 @@
 --
 
 
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
-use ieee.std_logic_arith.all;
-use work.vdp_package.all;
+LIBRARY IEEE;
+    USE IEEE.STD_LOGIC_1164.ALL;
+    USE IEEE.STD_LOGIC_UNSIGNED.ALL;
+    USE IEEE.STD_LOGIC_ARITH.ALL;
+    USE WORK.VDP_PACKAGE.ALL;
 
-entity vdp is
-  port(
-    -- VDP clock ... 21.477MHz
-    clk21m  : in std_logic;
-    reset   : in std_logic;
-    req     : in std_logic;
-    ack     : out std_logic;
-    wrt     : in std_logic;
-    adr     : in std_logic_vector(15 downto 0);
-    dbi     : out std_logic_vector(7 downto 0);
-    dbo     : in std_logic_vector(7 downto 0);
+ENTITY VDP IS
+    PORT(
+        -- VDP CLOCK ... 21.477MHZ
+        CLK21M              : IN    STD_LOGIC;
+        RESET               : IN    STD_LOGIC;
+        REQ                 : IN    STD_LOGIC;
+        ACK                 : OUT   STD_LOGIC;
+        WRT                 : IN    STD_LOGIC;
+        ADR                 : IN    STD_LOGIC_VECTOR( 15 DOWNTO 0 );
+        DBI                 : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+        DBO                 : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
 
-    int_n   : out std_logic;
+        INT_N               : OUT   STD_LOGIC;
 
-    pRamOe_n: out std_logic;
-    pRamWe_n: out std_logic;
-    pRamAdr : out std_logic_vector(16 downto 0);
-    pRamDbi : in  std_logic_vector(15 downto 0);
-    pRamDbo : out std_logic_vector(7 downto 0);
+        PRAMOE_N            : OUT   STD_LOGIC;
+        PRAMWE_N            : OUT   STD_LOGIC;
+        PRAMADR             : OUT   STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+        PRAMDBI             : IN    STD_LOGIC_VECTOR( 15 DOWNTO 0 );
+        PRAMDBO             : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
 
-    -- Video Output
-    pVideoR : out std_logic_vector( 5 downto 0);
-    pVideoG : out std_logic_vector( 5 downto 0);
-    pVideoB : out std_logic_vector( 5 downto 0);
+        VDPSPEEDMODE        : IN    STD_LOGIC;
+        RATIOMODE           : IN    STD_LOGIC_VECTOR(  2 DOWNTO 0 );
+        CENTERYJK_R25_N     : IN    STD_LOGIC;
 
-    pVideoHS_n : out std_logic;
-    pVideoVS_n : out std_logic;
-    pVideoCS_n : out std_logic;
+        -- VIDEO OUTPUT
+        PVIDEOR             : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+        PVIDEOG             : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+        PVIDEOB             : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
 
-    pVideoDHClk : out std_logic;
-    pVideoDLClk : out std_logic;
+        PVIDEOHS_N          : OUT   STD_LOGIC;
+        PVIDEOVS_N          : OUT   STD_LOGIC;
+        PVIDEOCS_N          : OUT   STD_LOGIC;
 
-    -- CXA1645(RGB->NTSC encoder) signals
-    pVideoSC : out std_logic;
-    pVideoSYNC : out std_logic;
+        PVIDEODHCLK         : OUT   STD_LOGIC;
+        PVIDEODLCLK         : OUT   STD_LOGIC;
 
-    -- Display resolution (0=15kHz, 1=31kHz)
-    DispReso : in  std_logic;
+        -- DISPLAY RESOLUTION (0=15KHZ, 1=31KHZ)
+        DISPRESO            : IN    STD_LOGIC;
 
-    -- Debug window signals
-    debugWindowToggle : in std_logic;
-    osdLocateX    : in std_logic_vector( 5 downto 0);
-    osdLocateY    : in std_logic_vector( 4 downto 0);
-    osdCharCodeIn : in std_logic_vector( 7 downto 0);
-    osdCharWrReq  : in std_logic;
-    osdCharWrAck  : out std_logic
+        NTSC_PAL_TYPE       : IN    STD_LOGIC;
+        FORCED_V_MODE       : IN    STD_LOGIC;
+        LEGACY_VGA          : IN    STD_LOGIC
+
+        -- DEBUG OUTPUT
+    --  DEBUG_OUTPUT        : OUT   STD_LOGIC_VECTOR( 15 DOWNTO 0 ) -- ★
     );
-end vdp;
-
-architecture rtl of vdp is
-  -- H counter
-  signal h_counter  : std_logic_vector(10 downto 0);
-  -- V counter (This counter will return to zero every two fields)
-  signal v_counter  : std_logic_vector(10 downto 0);
-  -- This is a field local counter
-  signal v_counter2 : std_logic_vector(10 downto 0);
-
-  -- display start position ( when adjust=(0,0) )
-  -- [from V9938 Technical Data Book]
-  -- Horaizontal Display Parameters
-  --  [non TEXT]
-  --   * Total Display      1368 clks  - a
-  --   * Right Border         59 clks  - b
-  --   * Right Blanking       27 clks  - c
-  --   * H-Sync Pulse Width  100 clks  - d
-  --   * Left Blanking       102 clks  - e
-  --   * Left Border          56 clks  - f
-  -- OFFSET_X is the position when preDotCounter_x is -8. So,
-  --    => (d+e+f-8*4-8*4)/4 => (100+102+56)/4 - 16 => 49
-  constant OFFSET_X : std_logic_vector( 6 downto 0) := "0110001";
-
-  -- Vertical Display Parameters (NTSC)
-  --                            [192 Lines]  [212 Lines]
-  --                            [Even][Odd]  [Even][Odd]
-  --   * V-Sync Pulse Width          3    3       3    3 lines - g
-  --   * Top Blanking               13 13.5      13 13.5 lines - h
-  --   * Top Border                 26   26      16   16 lines - i
-  --   * Display Time              192  192     212  212 lines - j
-  --   * Bottom Border            25.5   25    15.5   15 lines - k
-  --   * Bottom Blanking             3    3       3    3 lines - l
-  -- OFFSET_Y is the start line of Top Border (192 LInes Mode)
-  --    => l+g+h => 3 + 3 + 13 = 19
-  constant OFFSET_Y : std_logic_vector( 6 downto 0) := "0010011";       -- = 3+3+13=19
-
-  -- display positions, adapted for adjust(x,y)
-  signal adjust_x : std_logic_vector( 6 downto 0);
-
-  -- dot state register
-  signal dotState : std_logic_vector( 1 downto 0);
-  signal eightDotState : std_logic_vector( 2 downto 0);
-
-  -- display field signal  
-  signal field  : std_logic;
-
-  -- for vsync interrupt
-  signal vsyncInt_n : std_logic;
-  signal vsyncIntReq : std_logic;
-  signal vsyncIntAck : std_logic;
-  signal vsWindow_y : std_logic;
-  signal dVsWindow_y : std_logic;
-
-  -- for hsync interrupt
-  signal hsyncInt_n : std_logic;
-  signal hsyncIntReq : std_logic;
-  signal hsyncIntAck : std_logic;
-  signal dVideoHS_n : std_logic;
-  signal enaHsync : std_logic;
-  
-  -- display area flags
-  signal window_x :std_logic;
-  signal window :std_logic;
-  signal preWindow_x :std_logic;
-  signal preWindow_y :std_logic;
-  signal preWindow_y_sp :std_logic;
-  signal preWindow :std_logic;
-  signal preWindow_sp :std_logic;
-  -- for frame zone
-  signal bwindow_x :std_logic;
-  signal bwindow_y :std_logic;
-  signal bwindow :std_logic;
-
--- dot counter
-  signal dotCounter_x : std_logic_vector( 8 downto 0);
-
-  -- dot counter - 8 ( reading addr )
-  signal preDotCounter_x : std_logic_vector( 8 downto 0);
-  signal preDotCounter_y : std_logic_vector( 8 downto 0);
-  -- Y counters independent of virtical scroll register
-  signal preDotCounter_yp : std_logic_vector( 8 downto 0);
-
-  -- 3.58MHz generator
-  signal cpuClockCounter :std_logic_vector( 2 downto 0);
-
-  -- VDP register access
-  signal registerRamAddr     : std_logic_vector( 7 downto 0);
-  signal registerRamAddr_in  : std_logic_vector( 7 downto 0);
-  signal registerRamAddr_out : std_logic_vector( 7 downto 0);
-  signal registerRamWe       : std_logic;
-  signal registerRamWeD      : std_logic;
-  signal registerRamReadData : std_logic_vector( 7 downto 0);
-  signal registerRamData_out : std_logic_vector( 7 downto 0);
-  signal registerRamData_in  : std_logic_vector( 7 downto 0);
-  
-  signal VdpP1Is1stByte : std_logic;
-  signal VdpP2Is1stByte : std_logic;
-  signal VdpP0Data : std_logic_vector( 7 downto 0);
-  signal VdpP1Data : std_logic_vector( 7 downto 0);
-  signal VdpRegPtr : std_logic_vector( 5 downto 0);
-  signal VdpRegWrPulse : std_logic;
-  signal VdpVramAccessAddr : std_logic_vector( 16 downto 0);
-  signal VdpVramAccessData : std_logic_vector( 7 downto 0);
-  signal VdpVramAccessAddrTmp : std_logic_vector( 16 downto 0);
-  signal VdpVramAddrSetReq : std_logic;
-  signal VdpVramAddrSetAck : std_logic;
-  signal VdpVramAccessRw : std_logic;
-  signal VdpVramWrReq : std_logic;
-  signal VdpVramWrAck : std_logic;
-  signal VdpVramReadingR : std_logic;
-  signal VdpVramReadingA : std_logic;
-  signal VdpVramRdData : std_logic_vector(7 downto 0);
-  signal VdpVramRdReq : std_logic;
-  signal VdpVramRdAck : std_logic;
-  signal dispModeVGA : std_logic;
-  signal VdpR0DispNum : std_logic_vector(3 downto 1);
-  signal VdpR0DispNumX : std_logic_vector(3 downto 1);
-  signal VdpR0HSyncIntEn : std_logic;
-  signal VdpR1DispMode : std_logic_vector(1 downto 0);
-  signal VdpR1DispModeX : std_logic_vector(1 downto 0);
-  signal VdpR1SpSize : std_logic;
-  signal VdpR1SpZoom : std_logic;
-  signal VdpR1VSyncIntEn : std_logic;
-  signal VdpR1DispOn : std_logic;
-  signal VdpR1DispOnX : std_logic;
-  signal VdpR2PtnNameTblBaseAddr : std_logic_vector( 6 downto 0);
-  signal VdpR2PtnNameTblBaseAddrX : std_logic_vector( 6 downto 0);
-  signal VdpR4PtnGeneTblBaseAddr : std_logic_vector( 5 downto 0);
-  signal VdpR10R3ColorTblBaseAddr : std_logic_vector( 10 downto 0);
-  signal VdpR11R5SpAttrTblBaseAddr : std_logic_vector( 9 downto 0);
-  signal VdpR6SpPtnGeneTblBaseAddr : std_logic_vector( 5 downto 0);
-  signal VdpR7FrameColor : std_logic_vector( 7 downto 0);
-  signal VdpR8SpOff : std_logic;
-  signal VdpR8Color0On : std_logic;
-  signal VdpR9PALMode : std_logic;
-  signal VdpR9PALModeX : std_logic;
-  signal VdpR9InterlaceMode : std_logic;
-  signal VdpR9TwoPageMode : std_logic;
-  signal VdpR9YDots : std_logic;
-  signal VdpR12BlinkColor : std_logic_vector(7 downto 0);
-  signal VdpR13BlinkPeriod : std_logic_vector(7 downto 0);
-  signal VdpR15StatusRegNum : std_logic_vector( 3 downto 0);
-  signal VdpR16PalNum : std_logic_vector( 3 downto 0);
-  signal VdpR17RegNum : std_logic_vector( 5 downto 0);
-  signal VdpR17IncRegNum : std_logic;
-  signal VdpR18Adjust : std_logic_vector( 7 downto 0);
-  signal VdpR19HSyncIntLine : std_logic_vector( 7 downto 0);
-  signal VdpR23VStartLine : std_logic_vector( 7 downto 0);
-
-  constant VdpCmdHMMC  : std_logic_vector( 3 downto 0) := "1111";
-  constant VdpCmdYMMM  : std_logic_vector( 3 downto 0) := "1110";
-  constant VdpCmdHMMM  : std_logic_vector( 3 downto 0) := "1101";
-  constant VdpCmdHMMV  : std_logic_vector( 3 downto 0) := "1100";
-  constant VdpCmdLMMC  : std_logic_vector( 3 downto 0) := "1011";
-  constant VdpCmdLMCM  : std_logic_vector( 3 downto 0) := "1010";
-  constant VdpCmdLMMM  : std_logic_vector( 3 downto 0) := "1001";
-  constant VdpCmdLMMV  : std_logic_vector( 3 downto 0) := "1000";
-  constant VdpCmdLINE  : std_logic_vector( 3 downto 0) := "0111";
-  constant VdpCmdSRCH  : std_logic_vector( 3 downto 0) := "0110";
-  constant VdpCmdPSET  : std_logic_vector( 3 downto 0) := "0101";
-  constant VdpCmdPOINT : std_logic_vector( 3 downto 0) := "0100";
-  constant VdpCmdSTOP  : std_logic_vector( 3 downto 0) := "0000";
-
-  constant VdpCmdIMPb210 : std_logic_vector( 2 downto 0) := "000";
-  constant VdpCmdANDb210 : std_logic_vector( 2 downto 0) := "001";
-  constant VdpCmdORb210  : std_logic_vector( 2 downto 0) := "010";
-  constant VdpCmdEORb210 : std_logic_vector( 2 downto 0) := "011";
-  constant VdpCmdNOTb210 : std_logic_vector( 2 downto 0) := "100";
-
-  signal VdpModeText1 : std_logic;      -- text mode 1    (SCREEN0 width 40)
-  signal VdpModeText2 : std_logic;      -- text mode 2    (SCREEN0 width 80)
-  signal VdpModeMulti : std_logic;      -- multicolor mode(SCREEN3)
-  signal VdpModeGraphic1 : std_logic;   -- graphic mode 1 (SCREEN1)
-  signal VdpModeGraphic2 : std_logic;   -- graphic mode 2 (SCREEN2)
-  signal VdpModeGraphic3 : std_logic;   -- graphic mode 2 (SCREEN4)
-  signal VdpModeGraphic4 : std_logic;   -- graphic mode 4 (SCREEN5)
-  signal VdpModeGraphic5 : std_logic;   -- graphic mode 5 (SCREEN6)
-  signal VdpModeGraphic6 : std_logic;   -- graphic mode 6 (SCREEN7)
-  signal VdpModeGraphic7 : std_logic;   -- graphic mode 7 (SCREEN8)
-  signal VdpModeIsHighRes : std_logic;  -- true when mode GRAPHIC5, 6
-  signal vdpModeIsVramInterleave : std_logic; -- true when mode GRAPHIC6, 7
-
-  -- for text 1 and 2
-  signal pRamAdrT12 : std_logic_vector(16 downto 0);
-  signal colorCodeT12 : std_logic_vector( 3 downto 0);
-  signal txVramReadEn : std_logic;
-
-  -- for graphic 1,2,3 and multi color
-  signal pRamAdrG123M : std_logic_vector(16 downto 0);
-  signal colorCodeG123M : std_logic_vector( 3 downto 0);
-
-  -- for graphic 4,5,6,7
-  signal pRamAdrG4567 : std_logic_vector(16 downto 0);
-  signal colorCodeG4567 : std_logic_vector( 7 downto 0);
-  
-  -- sprite
-  signal spMode2 : std_logic;
-  signal spVramAccessing : std_logic;
-  signal pRamAdrSprite : std_logic_vector(16 downto 0);
-  signal spriteColorOut : std_logic;
-  signal colorCodeSprite : std_logic_vector( 3 downto 0);
-  signal vdpS0SpCollisionIncidence : std_logic;
-  signal vdpS0SpOverMapped         : std_logic;
-  signal vdpS0SpOverMappedNum      : std_logic_vector(4 downto 0);
-  signal vdpS3S4SpCollisionX       : std_logic_vector(8 downto 0);
-  signal vdpS5S6SpCollisionY       : std_logic_vector(8 downto 0);
-  signal spVdpS0ResetReq           : std_logic;
-  signal spVdpS0ResetAck           : std_logic;
-  signal spVdpS5ResetReq           : std_logic;
-  signal spVdpS5ResetAck           : std_logic;
-
-  -- palette registers
-  signal paletteAddr : std_logic_vector( 7 downto 0);
-  signal paletteAddr_out : std_logic_vector( 3 downto 0);
-  signal paletteWeRB : std_logic;
-  signal paletteWeG : std_logic;
-  signal paletteIn : std_logic;
-  signal paletteDataRB_out : std_logic_vector( 7 downto 0);
-  signal paletteDataG_out : std_logic_vector( 7 downto 0);
-  signal paletteDataRB_in : std_logic_vector(7 downto 0);
-  signal paletteDataG_in : std_logic_vector(7 downto 0);
-  signal paletteWrNum : std_logic_vector( 3 downto 0);
-  signal paletteWrReq : std_logic;
-  signal paletteWrAck : std_logic;
-
-  signal colorCodeG7 : std_logic_vector(7 downto 0);
-  
-  -- VDP Command Signals - Can be set by CPU
-  signal VdpCmdSX : std_logic_vector( 8 downto 0);  -- R33,32
-  signal VdpCmdSY : std_logic_vector( 9 downto 0);  -- R35,34
-  signal VdpCmdDX : std_logic_vector( 8 downto 0);  -- R37,36
-  signal VdpCmdDY : std_logic_vector( 9 downto 0);  -- R39,38
-  signal VdpCmdNX : std_logic_vector( 9 downto 0);  -- R41,40
-  signal VdpCmdNY : std_logic_vector( 9 downto 0);  -- R43,42
-  signal VdpCmdMM  : std_logic;                      -- R45 bit 0
-  signal VdpCmdEQ  : std_logic;                      -- R45 bit 1
-  signal VdpCmdDIX : std_logic;                      -- R45 bit 2
-  signal VdpCmdDIY : std_logic;                      -- R45 bit 3
-  signal VdpCmdMXS : std_logic;                      -- R45 bit 4
-  signal VdpCmdMXD : std_logic;                      -- R45 bit 5
-  signal VdpCmdCMR : std_logic_vector( 7 downto 0);  -- R46
-
-  -- VDP Command signals - Can be read & set by CPU
-  signal VdpCmdCLR : std_logic_vector( 7 downto 0);  -- R44, S#7
-
-  -- VDP Command Signals - Can be read by CPU
-  signal VdpCmdCE : std_logic;  -- S#2 (bit 0)
-  signal VdpCmdBD : std_logic;  -- S#2 (bit 4)
-  signal VdpCmdTR : std_logic;  -- S#2 (bit 7)
-  signal VdpCmdSXTmp : std_logic_vector( 10 downto 0); -- S#8,S#9
-
-  -- VDP Command Signals - internal registers
-  alias  VdpCmdSXTHigh : std_logic_vector(1 downto 0) is VdpCmdSXTmp(9 downto 8);
-  signal VdpCmdDXTmp : std_logic_vector( 9 downto 0);
-  alias  VdpCmdDXTHigh : std_logic_vector(1 downto 0) is VdpCmdDXTmp(9 downto 8);
-  signal VdpCmdNXTmp : std_logic_vector( 9 downto 0);
-  signal VdpCmdRegNum : std_logic_vector(3 downto 0);
-  signal VdpCmdRegData : std_logic_vector(7 downto 0);
-  signal VdpCmdRegWrReq : std_logic;
-  signal VdpCmdRegWrAck : std_logic;
-  signal VdpCmdTRClrReq : std_logic;
-  signal VdpCmdTRClrAck : std_logic;
-  signal VdpCmdCMRWr : std_logic;
-
-  -- VDP Command signals - Communication between command processor
-  --  and memory interface (which is in the color generator)
-  signal VdpCmdVramWrAck : std_logic;
-  signal VdpCmdVramWrReq : std_logic;
-  signal VdpCmdVramRdAck : std_logic;
-  signal VdpCmdVramRdReq : std_logic;
-  signal VdpCmdVramAccessAddr : std_logic_vector( 16 downto 0);
-  signal VdpCmdVramReadingR : std_logic;
-  signal VdpCmdVramReadingA : std_logic;
-  signal VdpCmdVramRdData : std_logic_vector(7 downto 0);
-  signal VdpCmdVramWrData : std_logic_vector(7 downto 0);
-
-  -- VDP Command state register
-  type typVdpCmdState is (stVdpCmdIdle, stVdpCmdChkLoop,
-                          stVdpCmdRdCPU, stVdpCmdWaitCPU,
-                          stVdpCmdRdVram, stVdpCmdWaitRdVram,
-                          stVdpCmdPointWaitRdVram,
-                          stVdpCmdSrchWaitRdVram,
-                          stVdpCmdPreRdVram, stVdpCmdWaitPreRdVram,
-                          stVdpCmdWrVram, stVdpCmdWaitWrVram,
-                          stVdpCmdLineNewPos, stVdpCmdLineChkLoop,
-                          stVdpCmdSrchChkLoop,
-                          stVdpCmdExecEnd );
-  signal VdpCmdState : typVdpCmdState;
-
-  -- Video Output signals
-  signal iVideoR : std_logic_vector( 5 downto 0);
-  signal iVideoG : std_logic_vector( 5 downto 0);
-  signal iVideoB : std_logic_vector( 5 downto 0);
-
-  signal iVideoR_vdp : std_logic_vector( 5 downto 0);
-  signal iVideoG_vdp : std_logic_vector( 5 downto 0);
-  signal iVideoB_vdp : std_logic_vector( 5 downto 0);
-  signal iVideoHS_n : std_logic;
-  signal iVideoVS_n : std_logic;
-
-  signal iVideoR_ntsc : std_logic_vector( 5 downto 0);
-  signal iVideoG_ntsc : std_logic_vector( 5 downto 0);
-  signal iVideoB_ntsc : std_logic_vector( 5 downto 0);
-  signal iVideoHS_n_ntsc : std_logic;
-  signal iVideoVS_n_ntsc : std_logic;
-
-  signal iVideoR_pal : std_logic_vector( 5 downto 0);
-  signal iVideoG_pal : std_logic_vector( 5 downto 0);
-  signal iVideoB_pal : std_logic_vector( 5 downto 0);
-  signal iVideoHS_n_pal : std_logic;
-  signal iVideoVS_n_pal : std_logic;
-  
-  signal iVideoR_vga : std_logic_vector( 5 downto 0);
-  signal iVideoG_vga : std_logic_vector( 5 downto 0);
-  signal iVideoB_vga : std_logic_vector( 5 downto 0);
-  signal iVideoHS_n_vga : std_logic;
-  signal iVideoVS_n_vga : std_logic;
-
-  signal iRamAdr : std_logic_vector(16 downto 0);
-  signal pRamDat : std_logic_vector( 7 downto 0);
-  signal xRamSel : std_logic;
-  signal pRamDatPair : std_logic_vector( 7 downto 0);
-
-  signal debugRegNumSel : std_logic_vector( 7 downto 0);
-  signal debugRegData   : std_logic_vector( 7 downto 0);
-  
-  -- for debug window
-  signal debugWindowMode : std_logic_vector(2 downto 0);
-  signal debWindow : std_logic;
-  signal iVideoR_debwin : std_logic_vector( 1 downto 0);
-  signal iVideoG_debwin : std_logic_vector( 1 downto 0);
-  signal iVideoB_debwin : std_logic_vector( 1 downto 0);
-  signal dDebugWindowToggle :std_logic;
-  signal osdVideoR : std_logic_vector(3 downto 0);
-  signal osdVideoG : std_logic_vector(3 downto 0);
-  signal osdVideoB : std_logic_vector(3 downto 0);
-
-  signal iOsdCharWrAck : std_logic;
-
-  signal osdLocateXMaster : std_logic_vector( 5 downto 0);
-  signal osdLocateYMaster : std_logic_vector( 4 downto 0);
-  signal osdCharCodeInMaster : std_logic_vector( 7 downto 0);
-  signal osdCharMasterWrReq : std_logic;
-  signal osdCharMasterWrAck : std_logic;
-
-  signal osdLocateXLocal : std_logic_vector( 5 downto 0);
-  signal osdLocateYLocal : std_logic_vector( 4 downto 0);
-  signal osdCharCodeInLocal : std_logic_vector( 7 downto 0);
-  signal osdCharLocalWrReq : std_logic;
-  signal osdCharLocalWrAck : std_logic;
-  
-begin
-
-  pRamAdr <= iRamAdr;
-  xRamSel <= iRamAdr(16);
-  pRamDat <= pRamDbi(7 downto 0) when xRamSel = '0' else pRamDbi(15 downto 8);
-  pRamDatPair <= pRamDbi(7 downto 0) when xRamSel = '1' else pRamDbi(15 downto 8);
-
-  ----------------------------------------------------------------
-  -- Display Components
-  ----------------------------------------------------------------
---  VdpR9PALMode <= VdpR9PALModeX when dispModeVGA = '0' else '0';
-  VdpR9PALMode <= VdpR9PALModeX;
-  
-  iVideoR <= (others => '0') when bwindow = '0' else
-             iVideoR_debwin & iVideoR_vdp(5 downto 2) when debWindow = '1' else
-             iVideoR_vdp;
-  iVideoG <= (others => '0') when bwindow = '0' else
-             iVideoG_debwin & iVideoG_vdp(5 downto 2) when debWindow = '1' else
-             iVideoG_vdp;
-  iVideoB <= (others => '0') when bwindow = '0' else
-             iVideoB_debwin & iVideoB_vdp(5 downto 2) when debWindow = '1' else
-             iVideoB_vdp;
-
-  ntsc1 : ntsc port map( clk21m,
-                         reset,
-                         iVideoR,
-                         iVideoG,
-                         iVideoB,
-                         iVideoHS_n,
-                         iVideoVS_n,
-                         h_counter,
-                         v_counter,
-                         VdpR9InterlaceMode,
-                         iVideoR_ntsc,
-                         iVideoG_ntsc,
-                         iVideoB_ntsc,
-                         iVideoHS_n_ntsc,
-                         iVideoVS_n_ntsc);
-
-  pal1 : pal port map( clk21m,
-                       reset,
-                       iVideoR,
-                       iVideoG,
-                       iVideoB,
-                       iVideoHS_n,
-                       iVideoVS_n,
-                       h_counter,
-                       v_counter,
-                       VdpR9InterlaceMode,
-                       iVideoR_pal,
-                       iVideoG_pal,
-                       iVideoB_pal,
-                       iVideoHS_n_pal,
-                       iVideoVS_n_pal);
-  
-  vga1 : vga port map( clk21m,
-                       reset,
-                       iVideoR,
-                       iVideoG,
-                       iVideoB,
-                       iVideoHS_n,
-                       iVideoVS_n,
-                       h_counter,
-                       v_counter,
-                       VdpR9InterlaceMode,
-                       iVideoR_vga,
-                       iVideoG_vga,
-                       iVideoB_vga,
-                       iVideoHS_n_vga,
-                       iVideoVS_n_vga);
-  
-  -- Change display mode by external input port.
-  pVideoR <= iVideoR_ntsc when dispModeVGA = '0' and VdpR9PALMode = '0' else
-             iVideoR_pal  when dispModeVGA = '0' and VdpR9PALMode = '1' else
-             iVideoR_vga; 
-  pVideoG <= iVideoG_ntsc when dispModeVGA = '0' and VdpR9PALMode = '0' else
-             iVideoG_pal  when dispModeVGA = '0' and VdpR9PALMode = '1' else
-             iVideoG_vga; 
-  pVideoB <= iVideoB_ntsc when dispModeVGA = '0' and VdpR9PALMode = '0' else
-             iVideoB_pal  when dispModeVGA = '0' and VdpR9PALMode = '1' else
-             iVideoB_vga;
-  
-  -- H Sync signal
-  pVideoHS_n <= iVideoHS_n_ntsc when dispModeVGA = '0' and VdpR9PALMode = '0' else
-                iVideoHS_n_pal  when dispModeVGA = '0' and VdpR9PALMode = '1' else
-                iVideoHS_n_vga;
-  -- V Sync signal
-  pVideoVS_n <= iVideoVS_n_ntsc when dispModeVGA = '0' and VdpR9PALMode = '0' else
-                iVideoVS_n_pal  when dispModeVGA = '0' and VdpR9PALMode = '1' else
-                iVideoVS_n_vga;
-
-  
-  pVideoSYNC <= not (iVideoHS_n_ntsc xor iVideoVS_n_ntsc) when dispModeVGA = '0' and VdpR9PALMode = '0' else
-                not (iVideoHS_n_pal  xor iVideoVS_n_pal ) when dispModeVGA = '0' and VdpR9PALMode = '1' else
-                not (iVideoHS_n_vga xor iVideoVS_n_vga);
-  
-  -- These signals below are output directly regardless of display mode.
-  pVideoCS_n <= not (iVideoHS_n_ntsc xor iVideoVS_n_ntsc) when VdpR9PALMode = '0' else
-                not (iVideoHS_n_pal  xor iVideoVS_n_pal);
-  pVideoSC <= cpuClockCounter(2);
-
-
-  ----------------------------------------------------------------
-  -- Palette Register control R and B
-  ----------------------------------------------------------------
-  paletteAddr <= ( "0000" & paletteWrNum ) when (paletteIn = '1') else
-                 ( "0000" & paletteAddr_out );
-  paletteWeRB  <= '1' when paletteIn = '1' else '0';
-  paletteWeG   <= '1' when paletteIn = '1' else '0';
-
-  paletteMemRB : ram port map(paletteAddr, clk21m, paletteWeRB, paletteDataRB_in, paletteDataRB_out);
-  paletteMemG  : ram port map(paletteAddr, clk21m, paletteWeG,  paletteDataG_in, paletteDataG_out);
-
-  -----------------------------------------------------------------------------
-  -- Interrupt
-  -----------------------------------------------------------------------------
-  -- VSYNC Interrupt
-  vsyncInt_n <= '1' when VdpR1VSyncIntEn = '0' else
-                '0' when vsyncIntReq /= vsyncIntAck else
-                '1';
-  -- HSYNC Interrupt
-  hsyncInt_n <= '1' when (VdpR0HSyncIntEn = '0') or (enaHsync = '0') else
-                '0' when (hsyncIntReq /= hsyncIntAck)
-                else '1';
-
-  int_n <= '0' when (vsyncInt_n = '0') or (hsyncInt_n = '0')
-           else 'Z';
-
-  -----------------------------------------------------------------------------
-  -- VDP Mode Decoder
-  -----------------------------------------------------------------------------
-  -- VDP Mode
-  VdpModeText1    <= '1' when (VdpR0DispNum = "000" and VdpR1DispMode = "10") else '0';
-  VdpModeText2    <= '1' when (VdpR0DispNum = "010" and VdpR1DispMode = "10") else '0';
-  VdpModeMulti    <= '1' when (VdpR0DispNum = "000" and VdpR1DispMode = "01") else '0';
-  VdpModeGraphic1 <= '1' when (VdpR0DispNum = "000" and VdpR1DispMode = "00") else '0';
-  VdpModeGraphic2 <= '1' when (VdpR0DispNum = "001" and VdpR1DispMode = "00") else '0';
-  VdpModeGraphic3 <= '1' when (VdpR0DispNum = "010" and VdpR1DispMode = "00") else '0';
-  VdpModeGraphic4 <= '1' when (VdpR0DispNum = "011" and VdpR1DispMode = "00") else '0';
-  VdpModeGraphic5 <= '1' when (VdpR0DispNum = "100" and VdpR1DispMode = "00") else '0';
-  VdpModeGraphic6 <= '1' when (VdpR0DispNum = "101" and VdpR1DispMode = "00") else '0';
-  VdpModeGraphic7 <= '1' when (VdpR0DispNum = "111" and VdpR1DispMode = "00") else '0';
-
-  VdpModeIsHighRes <= '1' when (VdpR0DispNum(3 downto 2) = "10" and VdpR1DispMode = "00") else '0';
-  spMode2 <= '1' when (VdpModeGraphic3 = '1' or
-                       VdpModeGraphic4 = '1' or
-                       VdpModeGraphic5 = '1' or
-                       VdpModeGraphic6 = '1' or
-                       VdpModeGraphic7 = '1' ) else '0';
-
-  -----------------------------------------------------------------------------
-  -- Timing Generation
-  -----------------------------------------------------------------------------
-  process( clk21m, reset )
-    variable vsyncIntStartLine : std_logic_vector(10 downto 0);
-  begin
-    if (reset = '1') then
-      ack <= '0';
-      h_counter  <= (others => '0');
-      v_counter  <= (others => '0');
-      v_counter2 <= (others => '0');
-      iVideoHS_n <= '1';
-      iVideoVS_n <= '1';
-      cpuClockCounter <= (others => '0');
-      field <= '0';
-      vsyncIntReq <= '0';
-      hsyncIntReq <= '0';
-      vsyncIntStartLine := (others => '0');
-    elsif (clk21m'event and clk21m = '1') then
-      ack <= req;
-      -- 3.58MHz generator
-      case cpuClockCounter is
-        when "000" => cpuClockCounter <= "001";
-        when "001" => cpuClockCounter <= "011";
-        when "011" => cpuClockCounter <= "111";
-        when "111" => cpuClockCounter <= "110";
-        when "110" => cpuClockCounter <= "100";
-        when "100" => cpuClockCounter <= "000";
-        when others => cpuClockCounter <= "000";
-      end case;
-
-      if( h_counter = CLOCKS_PER_LINE-1 ) then
-        h_counter <= (others => '0' );
-      else
-        h_counter <= h_counter + 1;
-      end if;
-
-      if( ((VdpModeGraphic4 = '1') or (VdpModeGraphic5 = '1') or
-           (VdpModeGraphic6 = '1') or (VdpModeGraphic7 = '1')) and
-          VdpR9TwoPageMode = '1' ) then
-        VdpR2PtnNameTblBaseAddr <= (VdpR2PtnNameTblBaseAddrX and "1011111") or
-                                   ("0" & field & "00000");
-      else
-        VdpR2PtnNameTblBaseAddr <= VdpR2PtnNameTblBaseAddrX;
-      end if;
-
-
-      -- calculate adjust_x
---      adjust_x <= OFFSET_X - ( VdpR18Adjust(3) & VdpR18Adjust(3) & VdpR18Adjust(3) & VdpR18Adjust(3 downto 0) );
-
-
-      -- v_counter generation
-      if( (h_counter = (CLOCKS_PER_LINE/2) -1) or (h_counter = CLOCKS_PER_LINE-1) ) then
-        if( (v_counter = 523 and VdpR9InterlaceMode = '0' and VdpR9PALMode = '0') or
-            (v_counter = 524 and VdpR9InterlaceMode = '1' and VdpR9PALMode = '0') or
-            (v_counter = 625 and VdpR9InterlaceMode = '0' and VdpR9PALMode = '1') or
-            (v_counter = 624 and VdpR9InterlaceMode = '1' and VdpR9PALMode = '1') ) then
-          v_counter  <= v_counter +1;
-          v_counter2 <= (others => '0');
-        elsif( (v_counter = 1047 and VdpR9InterlaceMode = '0' and VdpR9PALMode = '0') or
-               (v_counter = 1049 and VdpR9InterlaceMode = '1' and VdpR9PALMode = '0') or
-               (v_counter = 1251 and VdpR9InterlaceMode = '0' and VdpR9PALMode = '1') or
-               (v_counter = 1249 and VdpR9InterlaceMode = '1' and VdpR9PALMode = '1') )then
-          if( h_counter = CLOCKS_PER_LINE-1 ) then
-            -- 524 lines * 2 = 1048 (NTSC non-interlace)
-            -- 525 lines * 2 = 1050 (NTSC interlace)
-            -- 626 lines * 2 = 1252 (PAL  non-interace)
-            -- 625 lines * 2 = 1250 (PAL  interlace)
-            v_counter  <= (others => '0');
-            v_counter2 <= (others => '0');
-          end if;
-        else
-          v_counter  <= v_counter + 1;
-          v_counter2 <= v_counter2 + 1;
-        end if;
-      end if;
-
-      -- generate field signal
-      if( (v_counter = 524 and VdpR9InterlaceMode = '0' and VdpR9PALMode = '0') or
-          (v_counter = 525 and VdpR9InterlaceMode = '1' and VdpR9PALMode = '0') or
-          (v_counter = 626 and VdpR9InterlaceMode = '0' and VdpR9PALMode = '1') or
-          (v_counter = 625 and VdpR9InterlaceMode = '1' and VdpR9PALMode = '1') ) then
-        field <= '1';
-      elsif( v_counter = 0 ) then
-        field <= '0';
-      end if;
-
-      -- generate H-sync pulse
-      -- This H-sync pulse is not a NTSC sync signal.
-      -- This signal is simply generated one time per line.
-      -- The NTSC sync signal is generated in ntsc.vhd.
-      if( h_counter = 1 ) then
-        iVideoHS_n <= '0';             -- pulse on
-      elsif( h_counter = 101 ) then
-        iVideoHS_n <= '1';             -- pulse off
-      end if;
-
-      -- generate V-sync pulse
-      if( v_counter2 = 6 ) then
-        -- sstate = sstate_B
-        iVideoVS_n <= '0';
-      elsif( v_counter2 = 12 ) then
-        -- sstate = sstate_A
-        iVideoVS_n <= '1';
-      end if;   
-
-      
-      -- V Sync Interrupt Request
-      if( VdpR9YDots = '0' ) then
-        -- JP: 238は適当
-        -- JP: 238だとスペースマンボウのデモが戻ってこない
---        vsyncIntStartLine := conv_std_logic_vector(238, vsyncIntStartLine'length);
-        vsyncIntStartLine := conv_std_logic_vector(240, vsyncIntStartLine'length);
-      else
-        -- JP: 248はたぶん実測値
-        vsyncIntStartLine := conv_std_logic_vector(248, vsyncIntStartLine'length);
-      end if;
-      if( VdpR9PALMode = '1' ) then
-        -- JP: +25は適当
-        vsyncIntStartLine := vsyncIntStartLine + 25;
-      end if;
-      -- v_counter is count up twice per line.
-      vsyncIntStartLine := vsyncIntStartLine + vsyncIntStartLine;
-
-      if( h_counter = 150 ) then
-        if( (v_counter = ("000" & OFFSET_Y & '0')) or
-            ((v_counter = ("000" & OFFSET_Y & '0')+524)   and VdpR9InterlaceMode='0' and VdpR9PALMode='0') or
-            ((v_counter = ("000" & OFFSET_Y & '0')+525+1) and VdpR9InterlaceMode='1' and VdpR9PALMode='0') or
-            ((v_counter = ("000" & OFFSET_Y & '0')+626)   and VdpR9InterlaceMode='0' and VdpR9PALMode='1') or
-            ((v_counter = ("000" & OFFSET_Y & '0')+625+1) and VdpR9InterlaceMode='1' and VdpR9PALMode='1') ) then
-          vsWindow_y <= '0';
-        elsif( (v_counter = vsyncIntStartLine) or
-               ((v_counter = vsyncIntStartLine+524)   and VdpR9InterlaceMode='0' and VdpR9PALMode = '0') or
-               ((v_counter = vsyncIntStartLine+525+1) and VdpR9InterlaceMode='1' and VdpR9PALMode = '0') or
-               ((v_counter = vsyncIntStartLine+626)   and VdpR9InterlaceMode='0' and VdpR9PALMode = '1') or
-               ((v_counter = vsyncIntStartLine+625+1) and VdpR9InterlaceMode='1' and VdpR9PALMode = '1') ) then
-          vsWindow_y <= '1';
-        end if;
-      end if;
-
-      dVsWindow_y <= vsWindow_y;
-      
-      if( dVsWindow_y = '0' and vsWindow_y = '1') then
-        -- rising edge
-          vsyncIntReq <= not vsyncIntAck;
-      end if;
-
-      
-      -- H Sync Interrupt Request
-      -- JP: R19で指定している"ライン番号"は，垂直スクロールレジスタの
-      -- JP: 影響を受ける、つまり画面上の物理的な位置ではなく、表示している
-      -- JP: 論理的なライン番号
-      if (preDotCounter_yp = "000000000") then
-        -- JP: 開始は0でよさそう。-1にすると、MSXの起動ロゴがうまく表示できなくなる。
-        enaHsync <= '1';
-      elsif (preWindow_y = '0' ) then
-        enaHsync <= '0';
-      end if;
-
-      if( dVsWindow_y= '0' and vsWindow_y = '1') then
-        hsyncIntReq <= hsyncIntAck;
-      elsif( (preDotCounter_x = 255) and
---      elsif( (preDotCounter_x = 250) and 
-      -- JP:実測だとHSYNCの立ち下がりから57μsくらいという結果もあるので、250くらいなのかも？
-      -- ((57000/46.5) - 100 - 102 - 56 + 4*8)/4 = 249.95
-      -- しかし、250だとURのHorizontal Spritで問題があるので、やはり255くらいが良い。
-             (preDotCounter_y(7 downto 0)  = VdpR19HSyncIntLine) ) then
-        -- Jp: 割り込みがイネーブルでなくても、S#1の水平割り込みフラグを見て動作する
-        -- JP: プログラムがあるので、水平同期割り込みイネーブルフラグは見ない。
-        hsyncIntReq <= not hsyncIntAck;
-      end if;
-    end if;
-  end process;
-
-  -- generate preWindow, window
-  window    <= (   window_x and preWindow_y);
-  preWindow <= (preWindow_x and preWindow_y);
-
-  process( clk21m, reset )
-    variable preDotCounter_yp_v : std_logic_vector(preDotCounter_yp'length -1 downto 0);
-    variable preDotcounterYpStart : std_logic_vector(8 downto 0);
-  begin
-    if (reset = '1') then
-      dotCounter_x <= (others =>'0');
-      preDotCounter_x <= (others =>'0');
-      preDotCounter_y <= (others =>'0');
-      preDotCounter_yp <= (others =>'0');
-      window_x <= '0';
-      preWindow_x <= '0';
-      preWindow_y <= '0';
-      bwindow <= '0';
-      bwindow_x <= '0';
-      bwindow_y <= '0';
-      VdpR1DispOn <= '0';
-    elsif (clk21m'event and clk21m = '1') then
-      -- main window
-      if( (h_counter( 1 downto 0) = "01") and ( dotCounter_x = 0 ) ) then
-        -- when dotCounter_x = 0
-        window_x <= '1';
-      elsif( (h_counter( 1 downto 0) = "01") and ( dotCounter_x ="100000000" ) ) then
-        -- when dotCounter_x = 256
-        window_x <= '0';
-      end if;
-
-      -- JP: preDotCounterは描画タイミングではなく、描画の為のデータを読み出す為に使用するカウンタ
-      -- JP: 「今表示している座標」ではなく「今読みだしている座標」という事
-
-      if( h_counter = ("00" & OFFSET_X & "10" ) ) then
-        -- JP: adjustをうまく処理するため、負の領域からカウントアップを開始する。
-        -- JP: adjustが+7の時に -1になるようになっている。
-        preDotCounter_x <= "111111000" +  -- -8
-                           (VdpR18Adjust(3) & VdpR18Adjust(3) & VdpR18Adjust(3) &
-                            VdpR18Adjust(3) & VdpR18Adjust(3) & VdpR18Adjust(3 downto 0));
-      elsif( h_counter(1 downto 0) = "10") then 
-        preDotCounter_x <= preDotCounter_x + 1;
-        if( preDotCounter_x = "111111111" ) then
-          -- JP: preDotCounter_x が -1から0にカウントアップする時にwindowを1にする
-          preWindow_x <= '1';
-        elsif( preDotCounter_x = "011111111" ) then
-          preWindow_x <= '0';
-        end if;
-
-        if( preDotCounter_x = "111111111" ) then
-          -- JP: preDotCounter_x が -1から0にカウントアップする時にdotCounter_xを-8にする
-          dotCounter_x <= "111111000";      -- -8
-        else
-          dotCounter_x <= dotCounter_x + 1;
-        end if;
-      end if;
-
-      if( h_counter(1 downto 0) = "11") then
-        if( preDotCounter_x = 0 ) then
-          eightDotState <= (others => '0');
-        else
-          eightDotState <= eightDotState + 1;
-        end if;
-      end if;
-      
-      
-      if( (h_counter( 1 downto 0) = "10") and
-          (preDotCounter_x = "111111111") ) then
-        -- JP: preWindow_xが 1になるタイミングと同じタイミングでY座標の計算
-        VdpR1DispOn <= VdpR1DispOnX;
-        VdpR0DispNum <= VdpR0DispNumX;
-        VdpR1DispMode <= VdpR1DispModeX;
-
-        if( (v_counter = ("000" & OFFSET_Y & '0')) or
-            ((v_counter = ("000" & OFFSET_Y & '0')+524)   and VdpR9InterlaceMode='0' and VdpR9PALMode='0') or
-            ((v_counter = ("000" & OFFSET_Y & '0')+525+1) and VdpR9InterlaceMode='1' and VdpR9PALMode='0') or
-            ((v_counter = ("000" & OFFSET_Y & '0')+626)   and VdpR9InterlaceMode='0' and VdpR9PALMode='1') or
-            ((v_counter = ("000" & OFFSET_Y & '0')+625+1) and VdpR9InterlaceMode='1' and VdpR9PALMode='1') ) then
-          -- JP: preDotCounterは Top Borderを描画するタイミング
-          -- JP: （負の領域）からカウントアップを開始する。
-          -- (for UNKNOWN REALITY's Over Scan Technich)
-          if(    VdpR9YDots = '0' and VdpR9PALMode = '0') then
-            preDotcounterYpStart := "111100110";  -- -26 = top border lines
-          elsif( VdpR9YDots = '1' and VdpR9PALMode = '0') then
-            preDotcounterYpStart := "111110000";  -- -16 = top border lines
-          elsif( VdpR9YDots = '0' and VdpR9PALMode = '1') then
-            preDotcounterYpStart := "111001011";  -- -53 = top border lines
-          elsif( VdpR9YDots = '1' and VdpR9PALMode = '1') then
-            preDotcounterYpStart := "111010101";  -- -43 = top border lines
-          end if;
-          preDotCounter_yp <= preDotcounterYpStart +
-                              (VdpR18Adjust(7) & VdpR18Adjust(7) & VdpR18Adjust(7) &
-                               VdpR18Adjust(7) & VdpR18Adjust(7) & VdpR18Adjust(7 downto 4));
-          preWindow_y_sp <= '1';
-        else
-          if( preDotCounter_yp = 227) then
-            preDotCounter_yp_v := preDotCounter_yp;
-          else
-            preDotCounter_yp_v := preDotCounter_yp + 1;
-          end if;
-          if( preDotCounter_yp_v = 0 ) then
-            preWindow_y <= '1';
-          elsif( ((VdpR9YDots = '0') and (preDotCounter_yp_v = 192)) or
-                 ((VdpR9YDots = '1') and (preDotCounter_yp_v = 212)) ) then
-            preWindow_y <= '0';
-            preWindow_y_sp <= '0';
-          end if;
-          preDotCounter_yp <= preDotCounter_yp_v;
-        end if;
-      end if;
-
-      -- JP: R23の変更が即座に反映されるようにした. 
-      preDotCounter_y <= preDotCounter_yp + ('0' & VdpR23VStartLine);
-      
-      
-
-      -- generate bwindow
-      if( h_counter = 200 ) then
-        bwindow_x <= '1';
-      elsif( h_counter = CLOCKS_PER_LINE-1-1 ) then
-        bwindow_x <= '0';
-      end if;
-
-      if( VdpR9InterlaceMode='0' ) then
-        -- non-interlace
-        -- 3+3+16 = 19
-        if( (v_counter = 20*2) or
-            ((v_counter = 524+20*2) and (VdpR9PALMode = '0')) or
-            ((v_counter = 626+20*2) and (VdpR9PALMode = '1')) ) then
-          bwindow_y <= '1';
-        elsif( ((v_counter = 524) and (VdpR9PALMode = '0')) or
-               ((v_counter = 626) and (VdpR9PALMode = '1')) or
-               (v_counter = 0) ) then
-          bwindow_y <= '0';
-        end if;
-      else
-        -- interlace
-        if( (v_counter = 20*2) or
-            -- +1 should be needed.
-            -- Because odd field's start is delayed half line.
-            -- So the start position of display time should be
-            -- delayed more half line.
-            ((v_counter = 525+20*2 + 1) and (VdpR9PALMode = '0')) or
-            ((v_counter = 625+20*2 + 1) and (VdpR9PALMode = '1')) ) then
-          bwindow_y <= '1';
-        elsif( ((v_counter = 525) and (VdpR9PALMode = '0')) or
-               ((v_counter = 625) and (VdpR9PALMode = '1')) or
-               (v_counter = 0) ) then
-          bwindow_y <= '0';
-        end if;
-      end if;
-
-      if( (bwindow_x = '1') and (bwindow_y = '1') )then
-        bwindow <= '1';
-      else
-        bwindow <= '0';
-      end if;
-
-    end if;
-  end process;
-
-  ------------------------------------------------------------------------------
-  -- main process
-  ------------------------------------------------------------------------------
-  process( clk21m, reset )
-    variable tRamAdr : std_logic_vector(16 downto 0);
-    variable vdpVramAccessAddrV : std_logic_vector( 16 downto 0);
-    variable vramAccessSwitch : integer range 0 to 6;
-
-    constant VRAM_ACCESS_DRAW : integer := 1;
-    constant VRAM_ACCESS_CPUW : integer := 2;
-    constant VRAM_ACCESS_CPUR : integer := 3;
-    constant VRAM_ACCESS_SPRT : integer := 4;
-    constant VRAM_ACCESS_VDPW : integer := 5;
-    constant VRAM_ACCESS_VDPR : integer := 6;
-  begin
-    if (reset = '1') then
-      dotState <= (others => '0' );
-      pVideoDHClk <= '0';
-      pVideoDLClk <= '0';
-
-      iRamAdr <= (others => '1');
-      pRamDbo <= (others => 'Z');
-      pRamOe_n <= '1';
-      pRamWe_n <= '1';
-
-      VdpVramReadingR <= '0';
-      VdpVramReadingA <= '0';
-
-      VdpVramRdAck <= '0';
-      VdpVramWrAck <= '0';
-      VdpVramRdData <= (others => '0');
-      VdpVramAddrSetAck <= '0';
-      VdpVramAccessAddr <= (others => '0');
-
-      VdpCmdVramWrAck <= '0';
-      VdpCmdVramRdAck <= '0';
-      VdpCmdVramReadingR <= '0';
-      VdpCmdVramReadingA <= '0';
-      VdpCmdVramRdData <= (others => '0');
-    elsif (clk21m'event and clk21m = '1') then
-      if( h_counter = CLOCKS_PER_LINE-1) then
-        dotState <= "00";
-        pVideoDHClk <= '1';
-        pVideoDLClk <= '1';
-      else
-        case dotState is
-          when "00" =>
-            dotState <= "01";
-            pVideoDHClk <= '0';
-            pVideoDLClk <= '1';
-          when "01" =>
-            dotState <= "11";
-            pVideoDHClk <= '1';
-            pVideoDLClk <= '0';
-          when "11" =>
-            dotState <= "10";
-            pVideoDHClk <= '0';
-            pVideoDLClk <= '0';
-          when "10" =>
-            dotState <= "00";
-            pVideoDHClk <= '1';
-            pVideoDLClk <= '1';
-          when others => null;
-        end case;
-      end if;
-
-      ------------------------------------------
-      -- main state
-      ------------------------------------------
-      case dotState is
-        when "01" =>
-          if( VdpVramReadingR /= VdpVramReadingA ) then
-            VdpVramRdData <= pRamDat;
-            VdpVramReadingA <= not VdpVramReadingA;
-          end if;
-          if( VdpCmdVramReadingR /= VdpCmdVramReadingA ) then
-            VdpCmdVramRdData <= pRamDat;
-            VdpCmdVramRdAck <= not VdpCmdVramRdAck;
-            VdpCmdVramReadingA <= not VdpCmdVramReadingA;
-          end if;
-        when "11" =>
-        when others => null;
-      end case;
-
-
-      --
-      -- VRAM access arbiter.
-      --
-      if( dotState = "10" ) then
-        if( (preWindow = '1') and (VdpR1DispOn = '1') and 
-          ((eightDotState="000") or (eightDotState="001") or (eightDotState="010") or
-           (eightDotState="011") or (eightDotState="100")) ) then
-          vramAccessSwitch := VRAM_ACCESS_DRAW;
-        elsif( (preWindow = '1') and (VdpR1DispOn = '1') and
-               (txVramReadEn = '1')) then
-          vramAccessSwitch := VRAM_ACCESS_DRAW;
-        elsif( (preWindow_x = '1') and (preWindow_y_sp = '1') and (spVramAccessing = '1') and
-               (eightDotState="101") and (VdpModeText1 = '0') and (VdpModeText2 = '0') ) then
-          -- for sprite Y-testing
-          vramAccessSwitch := VRAM_ACCESS_SPRT;
-        elsif( (preWindow_x = '0') and (preWindow_y_sp = '1') and (spVramAccessing = '1') and
-               (VdpModeText1 = '0') and (VdpModeText2 = '0') and
-               ((eightDotState="000") or (eightDotState="001") or (eightDotState="010") or
-                (eightDotState="011") or (eightDotState="100") or (eightDotState="101")) ) then
-          -- for sprite prepareing
-          vramAccessSwitch := VRAM_ACCESS_SPRT;
-        elsif( VdpVramWrReq /= VdpVramWrAck ) then
-          vramAccessSwitch := VRAM_ACCESS_CPUW;
-        elsif( VdpVramRdReq /= VdpVramRdAck ) then
-          vramAccessSwitch := VRAM_ACCESS_CPUR;
---        elsif( (eightDotState="101") or (eightDotState="111") ) then
-        elsif( (eightDotState="111") ) then
-          if (VdpCmdVramWrReq /= VdpCmdVramWrAck) then
-            vramAccessSwitch := VRAM_ACCESS_VDPW;
-          elsif( VdpCmdVramRdReq /= VdpCmdVramRdAck) then
-            vramAccessSwitch := VRAM_ACCESS_VDPR;
-          else
-            vramAccessSwitch := 0;
-          end if;
-        else
-            vramAccessSwitch := 0;
-        end if;
-      else
-        vramAccessSwitch := VRAM_ACCESS_DRAW;
-      end if;
-
-      --
-      -- VRAM access address switch
-      --
-      if( vramAccessSwitch = VRAM_ACCESS_CPUW ) then
-        -- VRAM write by CPU
-        -- JP: GRAPHIC6,7ではVRAM上のアドレスと RAM上のアドレスの関係が
-        -- JP: 他の画面モードと異るので注意
-        if( (VdpModeGraphic6 = '1') or (VdpModeGraphic7 = '1') ) then
-          iRamAdr <= VdpVramAccessAddr(0) &
-                     VdpVramAccessAddr(16 downto 1);
-        else
-          iRamAdr <= VdpVramAccessAddr;
-        end if;
-        if( (VdpModeText1 = '1') or (VdpModeMulti = '1') or
-            (VdpModeGraphic1 = '1') or (VdpModeGraphic2 = '1') ) then
-          VdpVramAccessAddr(13 downto 0) <= vdpVramAccessAddr(13 downto 0) + 1;
-        else
-          VdpVramAccessAddr <= vdpVramAccessAddr + 1;
-        end if;
-        pRamDbo <= VdpVramAccessData;
-        pRamOe_n <= '1';
-        pRamWe_n <= '0';
-        VdpVramWrAck <= not VdpVramWrAck;
-      elsif( vramAccessSwitch = VRAM_ACCESS_CPUR ) then
-        -- VRAM read by CPU
-        if( VdpVramAddrSetReq /= VdpVramAddrSetAck ) then
-          vdpVramAccessAddrV := VdpVramAccessAddrTmp;
-          -- clear vram address set request signal
-          VdpVramAddrSetAck <= not VdpVramAddrSetAck;
-        else
-          vdpVramAccessAddrV := VdpVramAccessAddr;
-        end if;
-
-      -- JP: GRAPHIC6,7ではVRAM上のアドレスと RAM上のアドレスの関係が
-        -- JP: 他の画面モードと異るので注意
-        if( (VdpModeGraphic6 = '1') or (VdpModeGraphic7 = '1') ) then
-          iRamAdr <= VdpVramAccessAddrV(0) &
-                     VdpVramAccessAddrV(16 downto 1);
-        else
-          iRamAdr <= VdpVramAccessAddrV;
-        end if;
-        if( (VdpModeText1 = '1') or (VdpModeMulti = '1') or
-            (VdpModeGraphic1 = '1') or (VdpModeGraphic2 = '1') ) then
-          VdpVramAccessAddr(13 downto 0) <= vdpVramAccessAddrV(13 downto 0) + 1;
-        else
-          VdpVramAccessAddr <= vdpVramAccessAddrV + 1;
-        end if;
-        pRamDbo <= (others => 'Z');
-        pRamOe_n <= '0';
-        pRamWe_n <= '1';
-        VdpVramRdAck <= not VdpVramRdAck;
-        VdpVramReadingR <= not VdpVramReadingA;
-      elsif( vramAccessSwitch = VRAM_ACCESS_VDPW) then
-        -- VRAM write by VDP command
-        -- VDP command write VRAM.
-        -- JP: GRAPHIC6,7ではアドレスと RAM上の位置が他の画面モードと
-        -- JP: 異るので注意
-        if( (VdpModeGraphic6 = '1') or (VdpModeGraphic7 = '1') ) then
-          iRamAdr <= VdpCmdVramAccessAddr(0) &
-                     VdpCmdVramAccessAddr(16 downto 1);
-        else
-          iRamAdr <= VdpCmdVramAccessAddr;
-        end if;
-        pRamDbo <= VdpCmdVramWrData;
-        pRamOe_n <= '1';
-        pRamWe_n <= '0';
-        VdpCmdVramWrAck <= not VdpCmdVramWrAck;
-      elsif( vramAccessSwitch = VRAM_ACCESS_VDPR ) then
-        -- VRAM read by VDP command
-        -- JP: GRAPHIC6,7ではアドレスと RAM上の位置が他の画面モードと
-        -- JP: 異るので注意
-        if( (VdpModeGraphic6 = '1') or (VdpModeGraphic7 = '1') ) then
-          iRamAdr <= VdpCmdVramAccessAddr(0) &
-                     VdpCmdVramAccessAddr(16 downto 1);
-        else
-          iRamAdr <= VdpCmdVramAccessAddr;
-        end if;
-        pRamDbo <= (others => 'Z');
-        pRamOe_n <= '0';
-        pRamWe_n <= '1';
-        VdpCmdVramReadingR <= not VdpCmdVramReadingA;
-      elsif( vramAccessSwitch = VRAM_ACCESS_SPRT ) then
-        -- VRAM read by sprite module
-        iRamAdr <= pRamAdrSprite;
-        pRamOe_n <= '0';
-        pRamWe_n <= '1';
-        pRamDbo <= (others => 'Z');
-      else
-        -- VRAM_ACCESS_DRAW
-        -- VRAM read for screen image building
-        case dotState is
-          when "10" =>
-            pRamDbo <= (others => 'Z' );
-            pRamOe_n <= '0';
-            pRamWe_n <= '1';
-            if( (VdpModeText1 = '1') or (VdpModeText2 = '1') ) then
-              iRamAdr <= pRamAdrT12;
-            elsif( (VdpModeGraphic1='1') or (VdpModeGraphic2='1') or
-                   (VdpModeGraphic3='1') or (VdpModeMulti='1')  ) then
-              iRamAdr <= pRamAdrG123M;
-            elsif( (VdpModeGraphic4='1') or (VdpModeGraphic5='1') or
-                   (VdpModeGraphic6='1') or (VdpModeGraphic7='1') ) then
-              iRamAdr <= pRamAdrG4567;
-            end if;
-          when "01" =>
-            pRamDbo <= (others => 'Z' );
-            pRamOe_n <= '0';
-            pRamWe_n <= '1';
-            if( (VdpModeGraphic6='1') or (VdpModeGraphic7='1') ) then
-              iRamAdr <= pRamAdrG4567;
-            end if;
-          when others =>
-            null;
-        end case;
-
-        if( (dotState = "11") and
-            (VdpVramAddrSetReq /= VdpVramAddrSetAck) ) then
-          VdpVramAccessAddr <= VdpVramAccessAddrTmp;
-          VdpVramAddrSetAck <= not VdpVramAddrSetAck;
-        end if;
-      end if;
-    end if;
-  end process;
-
-  -----------------------------------------------------------------------
-  -- color decoding
-  -------------------------------------------------------------------------
-  process( clk21m, reset )
-    variable colorCode : std_logic_vector( 7 downto 0);
-  begin
-    if (reset = '1') then
-      iVideoR_vdp <= "000000";
-      iVideoG_vdp <= "000000";
-      iVideoB_vdp <= "000000";
-
-      paletteWrAck <= '0';
-      paletteAddr_out <= (others => '0');
-      paletteIn <= '0';
-      colorCodeG7 <= (others => '0');
-    elsif (clk21m'event and clk21m = '1') then
-
-      -- [Drawing Timing (only 4dot)]
-      --                     |-----------|-----------|-----------|-----------|
-      -- eightDotState    7=><====0=====><====1=====><====2=====><====3=====>
-      -- dotState         "10"00"01"11"10"00"01"11"10"00"01"11"10"00"01"11"10"
-      -- window_x         ======0=><1====  
-      -- (GRAPHIC4)
-      -- Color Code                <D0>        <D0>        <D1>        <D1>
-      -- Palette Data                    <D0>        <D0>        <D1>        <D1>
-      -- Display Output                     <D0========><D0========><D1=========><D1==
-      -- (GRAPHIC5)
-      -- Color Code                <D0>  <D0>  <D0>  <D0>  <D1>  <D1>  <D1>  <D1>
-      -- Palette Data                    <D0>  <D0>  <D0>  <D0>  <D1>  <D1>  <D1>  <D1>
-      -- Display Output                     <D0==><D0==><D0==><D0==><D1==><D1==><D1==><D1==>
-      -- (GRAPHIC6)
-      -- Color Code                <D0>  <D0>  <P0>  <P0>  <D1>  <D1>  <P1>  <P1>
-      -- Palette Data                    <D0>  <D0>  <P0>  <P0>  <D1>  <D1>  <P1>  <P1>
-      -- Display Output                     <D0==><D0==><P0==><P0==><D1==><D1==><P1==><P1==>
-      -- (GRAPHIC7)
-      -- Direct Color              <D0===>     <P0===>     <D1===>     <P1===>
-      -- Display Output                     <D0========><P0========><D1=========><P1==
-      case dotState is
-        when "11" | "00" =>
-          if( (window = '1') and (VdpR1DispOn = '1')) then
---            if( spriteColorOut = '1' and VdpR8SpOff = '0' and
-            if( spriteColorOut = '1' and 
-                VdpModeText1 = '0' and VdpModeText2 = '0' ) then
-              -- Sprite has highest priority.
-              colorCode := "0000" & colorCodeSprite;
-              -- Special operation for Graphic7
-              if( VdpModeGraphic7 = '1' ) then
-                case colorCode(3 downto 0) is
-                  when X"0" => colorCode := "000" & "000" & "00";
-                  when X"1" => colorCode := "000" & "000" & "01";
-                  when X"2" => colorCode := "000" & "011" & "00";
-                  when X"3" => colorCode := "000" & "011" & "01";
-                  when X"4" => colorCode := "011" & "000" & "00";
-                  when X"5" => colorCode := "011" & "000" & "01";
-                  when X"6" => colorCode := "011" & "011" & "00";
-                  when X"7" => colorCode := "011" & "011" & "01";
-                  when X"8" => colorCode := "100" & "111" & "01";
-                  when X"9" => colorCode := "000" & "000" & "11";
-                  when X"A" => colorCode := "000" & "111" & "00";
-                  when X"B" => colorCode := "000" & "111" & "11";
-                  when X"C" => colorCode := "111" & "000" & "00";
-                  when X"D" => colorCode := "111" & "000" & "11";
-                  when X"E" => colorCode := "111" & "111" & "00";
-                  when X"F" => colorCode := "111" & "111" & "11";
-                  when others => null;
-                end case;
-              end if;
-            else
-              -- Display output
-              if( VdpModeGraphic1 = '1' or VdpModeGraphic2 = '1' or
-                  VdpModeGraphic3 = '1' or VdpModeMulti = '1' ) then 
-                colorCode := "0000" & colorCodeG123M;
-              elsif( (VdpModeText1 = '1') or (VdpModeText2 = '1') ) then
-                colorCode := "0000" & colorCodeT12;
-              else
-                colorCode := colorCodeG4567;
-              end if;
-            end if;
-          else
-            -- Border area
-            colorCode := VdpR7FrameColor(7 downto 0);
-          end if;
-
-          if( VdpModeGraphic5 = '1' ) then
-            -- GRAPHIC5 Tiling
-            if( dotState = "11" ) then
-              colorCode := "000000" & colorCode(3 downto 2);
-              if( colorCode = 0 and VdpR8Color0On = '0' ) then
-                colorCode := "000000" & VdpR7FrameColor(3 downto 2);
-              end if;
-            else
-              colorCode := "000000" & colorCode(1 downto 0);
-              if( colorCode = 0 and VdpR8Color0On = '0' ) then
-                colorCode := "000000" & VdpR7FrameColor(1 downto 0);
-              end if;
-            end if;
-          else
-            if( colorCode = 0 and VdpR8Color0On = '0' ) then
-              colorCode := VdpR7FrameColor;
-            end if;
-          end if;
-
-          
-          -- save original color code.          
-          colorCodeG7 <= colorCode;
-          
-          -- set palette address
-          paletteAddr_out <= colorCode( 3 downto 0);
-          paletteIn <= '0';
-
-          -- output decoded color
-          if( VdpModeGraphic7 = '1' ) then
-            iVideoR_vdp <= colorCodeG7(4 downto 2) & "000";
-            iVideoG_vdp <= colorCodeG7(7 downto 5) & "000";
-            iVideoB_vdp <= colorCodeG7(1 downto 0) & colorCodeG7(1) & "000";
-          else
-            iVideoR_vdp <= paletteDataRB_out(6 downto 4) & "000";
-            iVideoB_vdp <= paletteDataRB_out(2 downto 0) & "000";
-            iVideoG_vdp <= paletteDataG_out(2 downto 0) & "000";
-          end if;
-
-        when "10" | "01" =>
-          -- Update palette table.
-          if( paletteWrReq /= paletteWrAck ) then
-            paletteIn <= '1';
-            paletteWrAck <= not paletteWrAck;
-          end if;
-
-        when others =>
-          null;
-      end case;
-    end if;
-  end process;
-
-  -----------------------------------------------------------------------------
-  -- Screen Mode Modules
-  -----------------------------------------------------------------------------
-  iText12 : text12 port map(clk21m, reset, dotState, preDotCounter_x, preDotCounter_yp,
-                            VdpModeText1, VdpModeText2,
-                            VdpR7FrameColor,
-                            VdpR12BlinkColor,
-                            VdpR13BlinkPeriod,
-                            VdpR2PtnNameTblBaseAddr,
-                            VdpR4PtnGeneTblBaseAddr,
-                            VdpR10R3ColorTblBaseAddr,
-                            pRamDat, pRamAdrT12, txVramReadEn, colorCodeT12);
-
-  iGraphic123M : graphic123M port map(clk21m, reset, dotState, eightDotState, preDotCounter_x, preDotCounter_y,
-                                      VdpModeMulti, VdpModeGraphic1, VdpModeGraphic2, VdpModeGraphic3,
-                                      VdpR2PtnNameTblBaseAddr,
-                                      VdpR4PtnGeneTblBaseAddr,
-                                      VdpR10R3ColorTblBaseAddr,
-                                      pRamDat, pRamAdrG123M, colorCodeG123M);
-
-  iGraphic4567 : graphic4567 port map(clk21m, reset, dotState, eightDotState, preDotCounter_x, preDotCounter_y,
-                                      VdpModeGraphic4, VdpModeGraphic5, VdpModeGraphic6, VdpModeGraphic7,
-                                      VdpR2PtnNameTblBaseAddr,
-                                      pRamDat, pRamDatPair, pRamAdrG4567, colorCodeG4567);
-
-  -----------------------------------------------------------------------------
-  -- SPRITE Modules
-  -----------------------------------------------------------------------------
-
-  vdpModeIsVramInterleave <= '1' when ((VdpModeGraphic6 = '1') or (VdpModeGraphic7 = '1')) else
-                             '0';
-  iSprite : sprite port map(clk21m, reset, dotState, eightDotState, preDotCounter_x, preDotCounter_yp,
-                            vdpS0SpCollisionIncidence,
-                            vdpS0SpOverMapped,
-                            vdpS0SpOverMappedNum,
-                            vdpS3S4SpCollisionX,
-                            vdpS5S6SpCollisionY,
-                            spVdpS0ResetReq,
-                            spVdpS0ResetAck,
-                            spVdpS5ResetReq,
-                            spVdpS5ResetAck,
-                            VdpR1SpSize, VdpR1SpZoom,
-                            VdpR11R5SpAttrTblBaseAddr,
-                            VdpR6SpPtnGeneTblBaseAddr,
-                            VdpR8Color0On,
-                            VdpR8SpOff,
-                            VdpR23VStartLine,
-                            spMode2,
-                            vdpModeIsVramInterleave,
-                            spVramAccessing,
-                            pRamDat, pRamAdrSprite,
-                            spriteColorOut,
-                            colorCodeSprite);
-  
-  -----------------------------------------------------------------------------
-  --
-  -- VDP register access 
-  --
-  -----------------------------------------------------------------------------
-  registerRam : ram port map(registerRamAddr, clk21m, registerRamWe, registerRamData_in, registerRamData_out);
-  registerRamAddr <= registerRamAddr_in when (registerRamWe = '1') else
-                     registerRamAddr_out;
-  
-
-  process( clk21m, reset )
-  begin
-    if (reset = '1') then
-      registerRamAddr_in  <= (others => '0');
-      registerRamWe <= '0';
-      registerRamReadData <= (others => '0');
-      dbi <= (others => '0');
-      vsyncIntAck <= '0';
---            dVsyncIntReq <= '0';
-      VdpP1Data <= (others => '0');
-      VdpP1Is1stByte <= '1';
-      VdpP2Is1stByte <= '1';
-      VdpRegWrPulse <= '0';
-      VdpRegPtr <= (others => '0');
-      VdpVramWrReq <= '0';
-      VdpVramRdReq <= '0';
-      VdpVramAddrSetReq <= '0';
-      VdpVramAccessRw <= '0';
-      VdpVramAccessAddrTmp <= (others => '0');
-      VdpVramAccessData <= (others => '0');
-      VdpR0DispNumX <= (others => '0');
-      VdpR0HSyncIntEn <= '0';
-      VdpR1DispModeX <= (others => '0');
-      VdpR1SpSize <= '0';
-      VdpR1SpZoom <= '0';
-      VdpR1VSyncIntEn <= '0';
-      VdpR1DispOnX <= '0';
-      VdpR2PtnNameTblBaseAddrX <= (others => '0');
-      VdpR12BlinkColor <= (others => '0');
-      VdpR13BlinkPeriod <= (others => '0');
-      VdpR7FrameColor <= (others => '0');
-      VdpR8SpOff <= '1';
-      VdpR8Color0On <= '0';
-      VdpR9PALModeX <= '0';
-      VdpR9TwoPageMode <= '0';
-      VdpR9InterlaceMode <= '0';
-      VdpR9YDots <= '0';
-      VdpR15StatusRegNum <= (others => '0');
-      VdpR16PalNum <= (others => '0');
-      VdpR17RegNum <= (others => '0');
-      VdpR17IncRegNum <= '0';
-      VdpR18Adjust <= (others => '0');
-      VdpR19HSyncIntLine <= (others => '0');
-      VdpR23VStartLine <= (others => '0');
-
-      VdpCmdRegNum <= (others => '0');
-      VdpCmdRegData <= (others => '0');
-      VdpCmdRegWrReq <= '0';
-      VdpCmdTRClrReq <= '0';
-      
-      -- palette
-      paletteDataRB_in <= (others => '0');
-      paletteDataG_in  <= (others => '0');
-      paletteWrReq <= '0';
-      paletteWrNum <= (others => '0');
-    elsif (clk21m'event and clk21m = '1') then
-
-      -- save register value to RAM
-      registerRamWeD <= registerRamWe;
-      registerRamAddr_in  <= "00" & VdpRegPtr;
-      registerRamData_in  <= VdpP1Data;
-      if( registerRamWeD = '0' ) then
-        registerRamReadData <= registerRamData_out;
-      end if;
-      registerRamWe <= VdpRegWrPulse;
-      
-      --
-      if (req = '1' and wrt = '0') then
-        -- Read request
-        case adr(1 downto 0) is
-          when "00"   => -- port#0: read vram
-            dbi <= VdpVramRdData;
-            VdpVramRdReq <= not VdpVramRdAck;
-          when "01"   => -- port#1: read status register
-            -- Reset the first byte flag after reading of status register.
-            -- I don't know this implementation is same as real VDP.
-            -- JP: ステータスレジスタを読む時に 1stバイトフラグをリセットしてみる.
-            -- JP: 実機の挙動と合うかどうか不明.
-            VdpP1Is1stByte <= '1';
---            VdpP2Is1stByte <= '1';
-
-            case VdpR15StatusRegNum is
-              when "0000" => -- Read S#0
-                -- TODO: implementation is unfinished
-                if( vsyncIntAck /= vsyncIntReq ) then
-                  vsyncIntAck <= not vsyncIntAck;
-                end if;
---                dbi <= (vsyncIntAck xor vsyncintreq) & vdpS0SpOverMapped & vdpS0SpCollisionIncidence &
---                       vdpS0SpOverMappedNum;
-                dbi <= (vsyncIntAck xor vsyncintreq) & '0' & vdpS0SpCollisionIncidence &
-                       vdpS0SpOverMappedNum;
-                spVdpS0ResetReq <= not spVdpS0ResetAck;
-              when "0001" => -- Read S#1
-                -- TODO: implementation is unfinished
-                if( hsyncIntAck /= hsyncIntReq ) then
-                  hsyncIntAck <= not hsyncIntAck;
-                  dbi <= "00" & VDP_ID & '1';
-                else
-                  dbi <= "00" & VDP_ID & '0';
-                end if;
-              when "0010" => -- Read S#2
---                dbi <= '1' & not iVideoVS_n & not iVideoHS_n & VdpCmdBD & "11" & field & '0';
---                dbi <= '1' & not bwindow_y & not bwindow_x & VdpCmdBD & "11" & field & '0';
---                dbi <= VdpCmdTR & not bwindow_y & not bwindow_x & VdpCmdBD & "11" & field & VdpCmdCE;
---                dbi <= VdpCmdTR & not preWindow_y_sp & not preWindow_x & VdpCmdBD & "11" & field & VdpCmdCE;
---                dbi <= VdpCmdTR & not preWindow_y_sp & not bwindow_x & VdpCmdBD & "11" & field & VdpCmdCE;
---                dbi <= VdpCmdTR & not preWindow_y & not bwindow_x & VdpCmdBD & "11" & field & VdpCmdCE;
-                dbi <= VdpCmdTR & vsWindow_y & not bwindow_x & VdpCmdBD & "11" & field & VdpCmdCE;
-              when "0011" => -- Read S#3
-                dbi <= vdpS3S4SpCollisionX(7 downto 0);
-              when "0100" => -- Read S#4
-                dbi <= "0000000" & vdpS3S4SpCollisionX(8);
-              when "0101" => -- Read S#5
-                dbi <= vdpS5S6SpCollisionY(7 downto 0);
-                spVdpS5ResetReq <= not spVdpS5ResetAck;
-              when "0110" => -- Read S#6
-                dbi <= "0000000" & vdpS5S6SpCollisionY(8);
-              when "0111" => -- Read S#7: The color register
-                dbi <= VdpCmdCLR;
-                -- Reset the TR register; color data is now transferred to CPU
-                VdpCmdTRClrReq <= not VdpCmdTRClrAck;
-              when "1000" => -- Read S#8: SXTmp LSB
-                dbi <= VdpCmdSXTmp(7 downto 0);
-              when "1001" => -- Read S#9: SXTmp MSB
-                dbi <= ( 0 => VdpCmdSXTmp(8), others => '1');
-              when others =>
-                dbi <= (others => '0');
-            end case;
-          when "10"   => -- port#2: not supported in read mode
-            dbi <= (others => '1');
-          when others => -- port#3: not supported in read mode
-            dbi <= (others => '1');
-        end case;
-
-      elsif (req = '1' and wrt = '1') then
-        -- Write request
-        case adr(1 downto 0) is
-          when "00"   => -- port#0: Write vram
-            VdpVramAccessData <= dbo;
-            VdpVramWrReq <= not VdpVramWrAck;
-
-          when "01"   => -- port#1: Register write or vram addr setup
-            if(VdpP1Is1stByte = '1') then
-              -- It is the first byte; buffer it
-              VdpP1Is1stByte <= '0';
-              VdpP1Data <= dbo;
-            else
-              -- It is the second byte; process both bytes
-              VdpP1Is1stByte <= '1';
-              case dbo( 7 downto 6 ) is
-                when "01" =>  -- set vram access address(write)
-                  VdpVramAccessAddrTmp( 7 downto 0 ) <= VdpP1Data( 7 downto 0);
-                  VdpVramAccessAddrTmp(13 downto 8 ) <= dbo( 5 downto 0);
-                  VdpVramAddrSetReq <= not VdpVramAddrSetAck;
-                  VdpVramAccessRw <= '0';
-                when "00" =>  -- set vram access address(read)
-                  VdpVramAccessAddrTmp( 7 downto 0 ) <= VdpP1Data( 7 downto 0);
-                  VdpVramAccessAddrTmp(13 downto 8 ) <= dbo( 5 downto 0);
-                  VdpVramAddrSetReq <= not VdpVramAddrSetAck;
-                  VdpVramAccessRw <= '1';
-                  VdpVramRdReq <= not VdpVramRdAck;
-                when "10" =>  -- direct register selection
-                  VdpRegPtr <= dbo( 5 downto 0);
-                  VdpRegWrPulse <= '1';
-                when "11" =>  -- direct register selection ??
-                  VdpRegPtr <= dbo( 5 downto 0);
-                  VdpRegWrPulse <= '1';
-                when others =>
-                  null;
-              end case;
-            end if;
-
-          when "10"   => -- port#2: Palette write
-            if(VdpP2Is1stByte = '1') then
-              paletteDataRB_in <= dbo;
-              VdpP2Is1stByte <= '0';
-            else
-              -- パレットはRGBのデータが揃った時に一度に書き換える。
-              -- (実機で動作を確認した)
-              paletteDataG_in <= dbo;
-              paletteWrNum <= VdpR16PalNum;
-              paletteWrReq <= not paletteWrAck;
-              VdpP2Is1stByte <= '1';
-              VdpR16PalNum <= VdpR16PalNum + 1;
-            end if;
-
-          when "11" => -- port#3: Indirect register write
-            if( VdpR17RegNum /= "010001" ) then
-              -- Register 17 can not be modified. All others are OK
-              VdpRegWrPulse <= '1';
-            end if;
-            VdpP1Data <= dbo;
-            VdpRegPtr <= VdpR17RegNum;
-            if( VdpR17IncRegNum = '1' ) then
-              VdpR17RegNum <= VdpR17RegNum + 1;
-            end if;
-
-          when others =>
-            null;
-        end case;
-
-      elsif (VdpRegWrPulse = '1') then
-        -- Write to register (if previously requested)
-        VdpRegWrPulse <= '0';
-        if ( VdpRegPtr(5) = '0') then
-          -- It is a not a command engine register:
-          case VdpRegPtr(4 downto 0) is
-            when "00000" =>   -- #00
-              VdpR0DispNumX <= VdpP1Data(3 downto 1);
-              VdpR0HSyncIntEn <= VdpP1Data(4);
-              -- under testing
-              if( VdpP1Data(4) = '1' ) then
-                hsyncIntAck <= hsyncIntReq;
-              end if;
-            when "00001" =>   -- #01
-              VdpR1SpZoom <= VdpP1Data(0);
-              VdpR1SpSize <= VdpP1Data(1);
-              VdpR1DispModeX <= VdpP1Data(4 downto 3);
-              VdpR1VSyncIntEn <= VdpP1Data(5);
-              VdpR1DispOnX <= VdpP1Data(6);
-            when "00010" =>   -- #02
-              VdpR2PtnNameTblBaseAddrX <= VdpP1Data( 6 downto 0);
-            when "00011" =>   -- #03
-              VdpR10R3ColorTblBaseAddr(7 downto 0) <= VdpP1Data( 7 downto 0);
-            when "00100" =>   -- #04
-              VdpR4PtnGeneTblBaseAddr <= VdpP1Data( 5 downto 0);
-            when "00101" =>   -- #05
-              VdpR11R5SpAttrTblBaseAddr(7 downto 0) <= VdpP1Data;
-            when "00110" =>   -- #06
-              VdpR6SpPtnGeneTblBaseAddr <= VdpP1Data( 5 downto 0);
-            when "00111" =>   -- #07
-              VdpR7FrameColor <= VdpP1Data( 7 downto 0 );
-            when "01000" =>   -- #08
-              VdpR8SpOff <= VdpP1Data(1);
-              VdpR8Color0On <= VdpP1Data(5);
-            when "01001" =>   -- #09
-              VdpR9PALModeX <= VdpP1Data(1);
-              VdpR9TwoPageMode <= VdpP1Data(2);
-              VdpR9InterlaceMode <= VdpP1Data(3);
-              VdpR9YDots <= VdpP1Data(7);
-            when "01010" =>   -- #10
-              VdpR10R3ColorTblBaseAddr(10 downto 8) <= VdpP1Data( 2 downto 0);
-            when "01011" =>   -- #11
-              VdpR11R5SpAttrTblBaseAddr( 9 downto 8) <= VdpP1Data( 1 downto 0);
-            when "01100" =>   -- #12
-              VdpR12BlinkColor <= VdpP1Data;
-            when "01101" =>   -- #13
-              VdpR13BlinkPeriod <= VdpP1Data;
-            when "01110" =>   -- #14
-              VdpVramAccessAddrTmp( 16 downto 14 ) <= VdpP1Data( 2 downto 0);
-              VdpVramAddrSetReq <= not VdpVramAddrSetAck;
-            when "01111" =>   -- #15
-              VdpR15StatusRegNum <= VdpP1Data( 3 downto 0);
-            when "10000" =>   -- #16
-              VdpR16PalNum <= VdpP1Data( 3 downto 0 );
-              VdpP2Is1stByte <= '1';
-            when "10001" =>   -- #17
-              VdpR17RegNum <= VdpP1Data( 5 downto 0 );
-              VdpR17IncRegNum <= not VdpP1Data(7);
-            when "10010" =>   -- #18
-              VdpR18Adjust <= VdpP1Data;
-            when "10011" =>   -- #19
-              VdpR19HSyncIntLine <= VdpP1Data;
-              hsyncIntAck <= hsyncIntReq;
-            when "10111" =>    -- #23
-              VdpR23VStartLine <= VdpP1Data;
-            when others => null;
-          end case;
-        else
-          -- Registers for VDP Command
-          VdpCmdRegNum <= VdpRegPtr(3 downto 0);
-          VdpCmdRegData <= VdpP1Data;
-          VdpCmdRegWrReq <= not VdpCmdRegWrAck;
-        end if;
-      end if;
-
-    end if;
-  end process;
-
-  -- Display resolution (0=15kHz, 1=31kHz)
-  dispModeVGA <= DispReso;
-
-  -----------------------------------------------------------------------------
-  --
-  -- VDP Command
-  --
-  -----------------------------------------------------------------------------
-  process( clk21m, reset )
-    variable initializing: std_logic;
-    variable nxCount : std_logic_vector(9 downto 0);
-    variable xCountDelta : std_logic_vector(10 downto 0);
-    variable yCountDelta : std_logic_vector(9 downto 0);
-    variable nxLoopEnd : std_logic;
-    variable dyend : std_logic;
-    variable syend : std_logic;
-    variable nyLoopEnd : std_logic;
-    variable nx_minus_one : std_logic_vector(9 downto 0);
-    variable rdxlow : std_logic_vector(1 downto 0);
-    variable rdpoint : std_logic_vector(7 downto 0);
-    variable colmask : std_logic_vector(7 downto 0);
-    variable maxXmask : std_logic_vector(1 downto 0);
-    variable logOpDestCol : std_logic_vector(7 downto 0);
-    variable graphic4_or_6 : std_logic;
-    variable srcheqrslt : std_logic;
-    variable VdpVramAccessY : std_logic_vector(9 downto 0);
-    variable VdpVramAccessX : std_logic_vector(8 downto 0);
-  begin
-    if (reset = '1') then
-      VdpCmdState <= stVdpCmdIdle;  -- very important for Xilinx synthesis tool(XST)
-      initializing := '0';
-      nxCount := (others => '0');
-      nxLoopEnd := '0';
-      xCountDelta := (others => '0');
-      yCountDelta := (others => '0');
-      colmask := (others => '1');
-      rdxlow := "00";
-      VdpCmdSX <= (others => '0');  -- R32
-      VdpCmdSY <= (others => '0');  -- R34
-      VdpCmdDX <= (others => '0');  -- R36
-      VdpCmdDY <= (others => '0');  -- R38
-      VdpCmdNX <= (others => '0');  -- R40
-      VdpCmdNY <= (others => '0');  -- R42
-      VdpCmdCLR <= (others => '0');  -- R44
-      VdpCmdMM  <= '0';  -- R45 bit 0
-      VdpCmdEQ  <= '0';  -- R45 bit 1
-      VdpCmdDIX <= '0';  -- R45 bit 2
-      VdpCmdDIY <= '0';  -- R45 bit 3
-      VdpCmdMXS <= '0';  -- R45 bit 4
-      VdpCmdMXD <= '0';  -- R45 bit 5
-      VdpCmdCMR <= (others => '0');  -- R46
-      VdpCmdSXTmp <= (others => '0');
-      VdpCmdDXTmp <= (others => '0');
-      VdpCmdCMRWr <= '0';
-      VdpCmdRegWrAck <= '0';
-      VdpCmdVramWrReq <= '0';
-      VdpCmdVramRdReq <= '0';
-      VdpCmdVramWrData <= (others => '0');
-
-      VdpCmdTR <= '1'; -- Transfer Ready
-      VdpCmdCE <= '0'; -- Command Executing
-      VdpCmdBD <= '0'; -- Border color found
-      VdpCmdTRClrAck <= '0';
-      VdpVramAccessY := (others => '0');
-      VdpVramAccessX := (others => '0');
-      VdpCmdVramAccessAddr <= (others => '0');  
-    elsif (clk21m'event and clk21m = '1') then
-      if( (VdpModeGraphic4 = '1') or (VdpModeGraphic6 = '1') ) then
-        graphic4_or_6 := '1';
-      else
-        graphic4_or_6 := '0';
-      end if;
-
-
-      case VdpCmdCMR(7 downto 6) is
-        when "11" =>
-          -- Byte command
-          if( graphic4_or_6 = '1' ) then
-            -- GRAPHIC4,6 (screen 5, 7)
-            nxCount := "0" & VdpCmdNX(9 downto 1);
-            if (VdpCmdDIX = '0') then
-              xCountDelta := "00000000010"; -- +2
-            else
-              xCountDelta := "11111111110"; -- -2
-            end if;
-          elsif( VdpModeGraphic5 = '1' ) then
-            -- GRAPHIC5 (screen 6)
-            nxCount := "00" & VdpCmdNX(9 downto 2);
-            if (VdpCmdDIX = '0') then
-              xCountDelta := "00000000100"; -- +4
-            else
-              xCountDelta := "11111111100"; -- -4;
-            end if;
-          else
-            -- GRAPHIC7 (screen 8) and other
-            nxCount := VdpCmdNX;
-            if (VdpCmdDIX = '0') then
-              xCountDelta := "00000000001"; -- +1
-            else
-              xCountDelta := "11111111111"; -- -1
-            end if;
-          end if;
-          colmask := (others => '1');
-        when others =>
-          -- Dot command
-          nxCount := VdpCmdNX;
-          if (VdpCmdDIX = '0') then
-            xCountDelta := "00000000001"; -- +1;
-          else
-            xCountDelta := "11111111111"; -- -1;
-          end if;
-          if (graphic4_or_6 = '1') then
-            colmask := "00001111";
-          elsif (VdpModeGraphic5 = '1') then
-            colmask := "00000011";
-          else
-            colmask := (others => '1');
-          end if;
-      end case;
-
-      if (VdpCmdDIY = '0') then
-        yCountDelta := "0000000001";
-      else
-        yCountDelta := "1111111111";
-      end if;
-
-
-      if (VdpModeIsHighRes = '1') then
-        -- GRAPHIC 5,6 (screen 6, 7)
-        maxXmask := "10";
-      else
-        maxXmask := "01";
-      end if;
-
-      -- Determine if x-loop is finished
-      case VdpCmdCMR(7 downto 4) is
-        when VdpCmdHMMV | VdpCmdHMMC | VdpCmdLMMV | VdpCmdLMMC =>
-          if ((VdpCmdNXTmp = 0) or 
-              ((VdpCmdDXTHigh and maxXmask) = maxXmask)) then
-            nxLoopEnd := '1';
-          else
-            nxLoopEnd := '0';
-          end if;
-        when VdpCmdYMMM =>
-          if ((VdpCmdDXTHigh and maxXmask) = maxXmask) then
-            nxLoopEnd := '1';
-          else
-            nxLoopEnd := '0';
-          end if;
-        when VdpCmdHMMM | VdpCmdLMMM =>
-          if ((VdpCmdNXTmp = 0) or 
-              ((VdpCmdSXTHigh and maxXmask) = maxXmask) or
-              ((VdpCmdDXTHigh and maxXmask) = maxXmask)) then
-            nxLoopEnd := '1';
-          else
-            nxLoopEnd := '0';
-          end if;
-        when VdpCmdLMCM =>
-          if ((VdpCmdNXTmp = 0) or 
-              ((VdpCmdSXTHigh and maxXmask) = maxXmask)) then
-            nxLoopEnd := '1';
-          else
-            nxLoopEnd := '0';
-          end if;
-        when VdpCmdSRCH =>
-          if ((VdpCmdSXTHigh and maxXmask) = maxXmask) then
-            nxLoopEnd := '1';
-          else
-            nxLoopEnd := '0';
-          end if;
-        when others =>
-          nxLoopEnd := '1';
-      end case;
-      
-      -- Retrieve the 'point' out of the byte that was most recently read
-      if (graphic4_or_6 = '1') then
-        -- Screen 5, 7
-        if( rdxlow(0) = '0' ) then
-          rdpoint := "0000" & VdpCmdVramRdData(7 downto 4);
-        else
-          rdpoint := "0000" & VdpCmdVramRdData(3 downto 0);
-        end if;
-      elsif (VdpModeGraphic5 = '1') then
-        -- Screen 6
-        case rdxlow is
-          when "00" =>
-            rdpoint := "000000" & VdpCmdVramRdData(7 downto 6);
-          when "01" =>
-            rdpoint := "000000" & VdpCmdVramRdData(5 downto 4);
-          when "10" =>
-            rdpoint := "000000" & VdpCmdVramRdData(3 downto 2);
-          when others =>
---          when "11" =>
-            rdpoint := "000000" & VdpCmdVramRdData(1 downto 0);
---          when others =>
---            null; -- Should never occur
-        end case;
-      else
-        -- Screen 8 and other modes
-        rdpoint := VdpCmdVramRdData;
-      end if;
-
-      -- Perform logical operation on most recently read point and
-      -- on the point to be written.
-      if ((VdpCmdCMR(3) = '0') or ((VdpCmdVramWrData and colmask) /= "00000000")) then
-        case VdpCmdCMR(2 downto 0) is
-          when VdpCmdIMPb210 =>
-            logOpDestCol := (VdpCmdVramWrData and colmask);
-          when VdpCmdANDb210 =>
-            logOpDestCol := (VdpCmdVramWrData and colmask) and rdpoint;
-          when VdpCmdORb210 =>
-            logOpDestCol := (VdpCmdVramWrData and colmask) or rdpoint;
-          when VdpCmdEORb210 =>
-            logOpDestCol := (VdpCmdVramWrData and colmask) xor rdpoint;
-          when VdpCmdNOTb210 =>
-            logOpDestCol := not (VdpCmdVramWrData and colmask);
-          when others =>
-            logOpDestCol := rdpoint;
-        end case;
-      else
-        logOpDestCol := rdpoint;
-      end if;
-      
-      -- process register update request, clear 'Transfer Ready' request
-      -- or process any ongoing command.
-      if( VdpCmdRegWrReq /= VdpCmdRegWrAck ) then
-        VdpCmdRegWrAck <= not VdpCmdRegWrAck;
-        case VdpCmdRegNum is
-          when "0000" =>    -- #32
-            VdpCmdSX(7 downto 0) <= VdpCmdRegData;
-          when "0001" =>    -- #33
-            VdpCmdSX(8) <= VdpCmdRegData(0);
-          when "0010" =>    -- #34
-            VdpCmdSY(7 downto 0) <= VdpCmdRegData;
-          when "0011" =>    -- #35
-            VdpCmdSY(9 downto 8) <= VdpCmdRegData(1 downto 0);
-          when "0100" =>    -- #36
-            VdpCmdDX(7 downto 0) <= VdpCmdRegData;
-          when "0101" =>    -- #37
-            VdpCmdDX(8) <= VdpCmdRegData(0);
-          when "0110" =>    -- #38
-            VdpCmdDY(7 downto 0) <= VdpCmdRegData;
-          when "0111" =>    -- #39
-            VdpCmdDY(9 downto 8) <= VdpCmdRegData(1 downto 0);
-          when "1000" =>    -- #40
-            VdpCmdNX(7 downto 0) <= VdpCmdRegData;
-          when "1001" =>    -- #41
-            VdpCmdNX(9 downto 8) <= VdpCmdRegData(1 downto 0);
-          when "1010" =>    -- #42
-            VdpCmdNY(7 downto 0) <= VdpCmdRegData;
-          when "1011" =>    -- #43
-            VdpCmdNY(9 downto 8) <= VdpCmdRegData(1 downto 0);
-          when "1100" =>    -- #44
-            if (VdpCmdCE = '1') then
-              VdpCmdCLR <= VdpCmdRegData and colmask;
-            else
-              VdpCmdCLR <= VdpCmdRegData;
-            end if;
-            VdpCmdTR <= '0'; -- Data is transferred from CPU to VDP color register
-          when "1101" =>    -- #45
-            VdpCmdMM  <= VdpCmdRegData(0);
-            VdpCmdEQ  <= VdpCmdRegData(1);
-            VdpCmdDIX <= VdpCmdRegData(2);
-            VdpCmdDIY <= VdpCmdRegData(3);
-            VdpCmdMXD <= VdpCmdRegData(5);
-          when "1110" =>    -- #46
-            -- Initialize the new command
-            -- Note that this will abort any ongoing command!
-            VdpCmdCMR <= VdpCmdRegData;
-            VdpCmdCMRWr <= '1';
-            VdpCmdState <= stVdpCmdIdle;
-          when others =>
-            null;
-        end case;
-      elsif( VdpCmdTRClrReq /= VdpCmdTRClrAck ) then
-        -- Reset the data transfer register (CPU has just read the color register)
-        VdpCmdTRClrAck <= not VdpCmdTRClrAck;
-        VdpCmdTR <= '0';
-      else
-        -- Process the VDP Command state
-        case VdpCmdState is
-          when stVdpCmdIdle =>
-            if( VdpCmdCMRWr = '0' ) then
-              VdpCmdCE <= '0';
-              VdpCmdCE <= '0';
-            else
-              -- exec new VDP Command
-              VdpCmdCMRWr <= '0';
-              VdpCmdCE <= '1';
-              VdpCmdBD <= '0';
-              if VdpCmdCMR(7 downto 4) = VdpCmdLINE then
-                -- Line command requires special sxTmp and NXTmp set-up
-                nx_minus_one := VdpCmdNX - 1;
-                VdpCmdSXTmp <= "00" & nx_minus_one(9 downto 1);
-                VdpCmdNXTmp <= (others => '0');
-              else
-                if VdpCmdCMR(7 downto 4) = VdpCmdYMMM then
-                  -- For YMMM, SXTmp = DXTmp = DX
-                  VdpCmdSXTmp <= "00" & VdpCmdDX;
-                else
-                  -- For all others, SXTmp is busines as usual
-                  VdpCmdSXTmp <= "00" & VdpCmdSX;
-                end if;
-                -- NXTmp is business as usual for all but the LINE command
-                VdpCmdNXTmp <= nxCount;
-              end if;
-              VdpCmdDXTmp <= '0' & VdpCmdDX;
-              initializing := '1';
-              VdpCmdState <= stVdpCmdChkLoop;
-            end if;
-
-          when stVdpCmdRdCPU =>
-            -- Applicable to HMMC, LMMC
-            if (VdpCmdTR = '0') then
-              -- CPU has transferred data to (or from) the Color register
-              VdpCmdTR <= '1';  -- VDP is ready to receive the next transfer.
-              VdpCmdVramWrData <= VdpCmdCLR;
-              if (VdpCmdCMR(6) = '0') then
-                -- It is LMMC
-                VdpCmdState <= stVdpCmdPreRdVram;
-              else
-                -- It is HMMC
-                VdpCmdState <= stVdpCmdWrVram;
-              end if;
-            end if;
-
-          when stVdpCmdWaitCPU =>
-            -- Applicable to LMCM
-            if( VdpCmdTR  = '0' ) then
-              -- CPU has transferred data from (or to) the Color register
-              -- VDP may read the next value into the Color register
-              VdpCmdState <= stVdpCmdRdVram;
-            end if;
-
-          when stVdpCmdRdVram =>
-            -- Applicable to YMMM, HMMM, LMCM, LMMM, SRCH, POINT
-            VdpVramAccessY := VdpCmdSY;
-            VdpVramAccessX := VdpCmdSXTmp(8 downto 0);
-            rdxlow := VdpCmdSxTmp(1 downto 0);
-            VdpCmdVramRdReq <= not VdpCmdVramRdAck;
-            case VdpCmdCMR(7 downto 4) is
-              when VdpCmdPOINT =>
-                VdpCmdState <= stVdpCmdPointWaitRdVram;
-              when VdpCmdSRCH =>
-                VdpCmdState <= stVdpCmdSrchWaitRdVram;
-              when others =>
-                VdpCmdState <= stVdpCmdWaitRdVram;
-             end case;
-
-          when stVdpCmdPointWaitRdVram =>
-            -- Applicable to POINT
-            if ( VdpCmdVramRdReq = VdpCmdVramRdAck ) then
-              VdpCmdCLR <= rdpoint;
-              VdpCmdState <= stVdpCmdExecEnd;
-            end if;
-
-          when stVdpCmdSrchWaitRdVram =>
-            -- Applicable to SRCH
-            if ( VdpCmdVramRdReq = VdpCmdVramRdAck ) then
-              if (rdpoint = VdpCmdCLR) then
-                 srcheqrslt := '0';
-               else
-                 srcheqrslt := '1';
-               end if;
-               if (VdpCmdEQ = srcheqrslt) then
-                 VdpCmdBD <= '1';
-                 VdpCmdState <= stVdpCmdExecEnd;
-               else
-                 VdpCmdSxTmp <= VdpCmdSxTmp + xCountDelta;
-                 VdpCmdState <= stVdpCmdSrchChkLoop;
-               end if;
-             end if;
-
-          when stVdpCmdWaitRdVram =>
-            -- Applicable to YMMM, HMMM, LMCM, LMMM
-            if ( VdpCmdVramRdReq = VdpCmdVramRdAck ) then
-              VdpCmdSxTmp <= VdpCmdSxTmp + xCountDelta;
-              case VdpCmdCMR(7 downto 4) is
-                when VdpCmdLMMM =>
-                  VdpCmdVramWrData <= rdpoint;
-                  VdpCmdState <= stVdpCmdPreRdVram;
-                when VdpCmdLMCM =>
-                  VdpCmdCLR <= rdpoint;
-                  VdpCmdTR <= '1';
-                  VdpCmdNXTmp <= VdpCmdNXTmp - 1;
-                  VdpCmdState <= stVdpCmdChkLoop;
-                when others => -- remaining: YMMM, HMMM
-                  VdpCmdVramWrData <= VdpCmdVramRdData;
-                  VdpCmdState <= stVdpCmdWrVram;
-              end case;
-            end if;
-
-          when stVdpCmdPreRdVram =>
-            -- Applicable to LMMC, LMMM, LMMV, LINE, PSET
-            VdpVramAccessY := VdpCmdDY;
-            VdpVramAccessX := VdpCmdDXTmp(8 downto 0);
-            rdxlow := VdpCmdDxTmp(1 downto 0);
-            VdpCmdVramRdReq <= not VdpCmdVramRdAck;
-            VdpCmdState <= stVdpCmdWaitPreRdVram;
-
-          when stVdpCmdWaitPreRdVram =>
-            -- Applicable to LMMC, LMMM, LMMV, LINE, PSET
-            if ( VdpCmdVramRdReq = VdpCmdVramRdAck ) then
-              if (graphic4_or_6 = '1') then
-                -- Screen 5, 7
-                if( rdxlow(0) = '0' ) then
-                  VdpCmdVramWrData <= logOpDestCol(3 downto 0) & VdpCmdVramRdData(3 downto 0);
-                else
-                  VdpCmdVramWrData <= VdpCmdVramRdData(7 downto 4) & logOpDestCol(3 downto 0);
-                end if;
-              elsif (VdpModeGraphic5 = '1') then
-                -- Screen 6
-                case rdxlow is
-                  when "00" =>
-                    VdpCmdVramWrData <= logOpDestCol(1 downto 0) & VdpCmdVramRdData(5 downto 0);
-                  when "01" =>
-                    VdpCmdVramWrData <= VdpCmdVramRdData(7 downto 6) & logOpDestCol(1 downto 0) & VdpCmdVramRdData(3 downto 0);
-                  when "10" =>
-                    VdpCmdVramWrData <= VdpCmdVramRdData(7 downto 4) & logOpDestCol(1 downto 0) & VdpCmdVramRdData(1 downto 0);
-                  when others =>
---                  when "11" =>
-                    VdpCmdVramWrData <= VdpCmdVramRdData(7 downto 2) & logOpDestCol(1 downto 0);
---                  when others =>
---                    null; -- Should never occur
-                end case;
-              else
-                -- Screen 8 and other modes
-                VdpCmdVramWrData <= logOpDestCol;
-              end if;
-              VdpCmdState <= stVdpCmdWrVram;
-            end if;
-
-          when stVdpCmdWrVram =>
-            -- Applicable to HMMC, YMMM, HMMM, HMMV, LMMC, LMMM, LMMV, LINE, PSET
-            VdpVramAccessY := VdpCmdDY;
-            VdpVramAccessX := VdpCmdDXTmp(8 downto 0);
-            VdpCmdVramWrReq <= not VdpCmdVramWrAck;
-            VdpCmdState <= stVdpCmdWaitWrVram;
-
-          when stVdpCmdWaitWrVram =>
-            -- Applicable to HMMC, YMMM, HMMM, HMMV, LMMC, LMMM, LMMV, LINE, PSET
-            if ( VdpCmdVramWrReq = VdpCmdVramWrAck ) then
-              case VdpCmdCMR(7 downto 4) is
-                when VdpCmdPSET =>
-                  VdpCmdState <= stVdpCmdExecEnd;
-                when VdpCmdLINE =>
-                  VdpCmdSXTmp <= VdpCmdSXTmp - VdpCmdNY;
-                  if VdpCmdMM = '0' then
-                    VdpCmdDXTmp <= VdpCmdDXTmp + xCountDelta(9 downto 0);
-                  else
-                    VdpCmdDY <= VdpCmdDY + yCountDelta;
-                  end if;
-                  VdpCmdState <= stVdpCmdLineNewPos;
-                when others =>
-                  VdpCmdDxTmp <= VdpCmdDxTmp + xCountDelta(9 downto 0);
-                  VdpCmdNXTmp <= VdpCmdNXTmp - 1;
-                  VdpCmdState <= stVdpCmdChkLoop;
-              end case;
-            end if;            
-
-          when stVdpCmdLineNewPos =>
-            -- Applicable to LINE
-            if (VdpCmdSXTmp(10) = '1') then
-              VdpCmdSXTmp <= '0' & (VdpCmdSXTmp(9 downto 0) + VdpCmdNX);
-              if (VdpCmdMM = '0') then
-                VdpCmdDY <= VdpCmdDy + yCountDelta;
-              else
-                VdpCmdDXTmp <= VdpCmdDXTmp + xCountDelta(9 downto 0);
-              end if;
-            end if;           
-            VdpCmdState <= stVdpCmdLineChkLoop;
-
-          when stVdpCmdLineChkLoop =>
-            -- Applicable to LINE
-            if ((VdpCmdNXTmp = VdpCmdNX) or
-                ((VdpCmdDXTHigh and maxXmask) = maxXmask)) then
-              VdpCmdState <= stVdpCmdExecEnd;
-            else
-              VdpCmdVramWrData <= VdpCmdCLR;
-              -- Color must be re-masked, just in case that screenmode was changed
-              VdpCmdCLR <= VdpCmdCLR and colmask;
-              VdpCmdState <= stVdpCmdPreRdVram;
-            end if;
-            VdpCmdNXTmp <= VdpCmdNXTmp + 1;
-
-          when stVdpCmdSrchChkLoop =>
-            -- Applicable to SRCH
-            if (nxLoopEnd = '1') then
-              VdpCmdState <= stVdpCmdExecEnd;
-            else
-              -- Color must be re-masked, just in case that screenmode was changed
-              VdpCmdCLR <= VdpCmdCLR and colmask;
-              VdpCmdState <= stVdpCmdRdVram;
-            end if;
-
-          when stVdpCmdChkLoop =>
-            -- When initializing = '1': 
-            --   Applicable to all commands
-            -- When initializing = '0':
-            -- Applicable to HMMC, YMMM, HMMM, HMMV, LMMC, LMCM, LMMM, LMMV
-
-            -- Determine nyLoopEnd
-            dyend := '0';
-            syend := '0';
-            if (VdpCmdDIY = '1') then
-              if ((VdpCmdDY = 0) and (VdpCmdCMR(7 downto 4) /= VdpCmdLMCM)) then
-                dyend := '1';
-              end if;
-              if ((VdpCmdSY = 0) and (VdpCmdCMR(5) /= VdpCmdCMR(4))) then
-                -- bit5 /= bit4 is true for commands YMMM, HMMM, LMCM, LMMM
-                syend := '1';
-              end if;
-            end if;
-            if ((VdpCmdNY = 1) or (dyend = '1') or (syend = '1')) then
-              nyLoopEnd := '1';
-            else
-              nyLoopEnd := '0';
-            end if;
-
-            if ((initializing = '0') and (nxLoopEnd = '1') and (nyLoopEnd = '1')) then
-              VdpCmdState <= stVdpCmdExecEnd;
-            else
-              -- Command not yet finished or command initializing. Determine next/first step
-              -- Color must be (re-)masked, just in case that screenmode was changed
-              VdpCmdCLR <= VdpCmdCLR and colmask;
-              case VdpCmdCMR(7 downto 4) is
-                when VdpCmdHMMC =>
-                  VdpCmdState <= stVdpCmdRdCPU;
-                when VdpCmdYMMM =>
-                  VdpCmdState <= stVdpCmdRdVram;
-                when VdpCmdHMMM =>
-                  VdpCmdState <= stVdpCmdRdVram;
-                when VdpCmdHMMV =>
-                  VdpCmdVramWrData <= VdpCmdCLR;
-                  VdpCmdState <= stVdpCmdWrVram;
-                when VdpCmdLMMC =>
-                  VdpCmdState <= stVdpCmdRdCPU;
-                when VdpCmdLMCM =>
-                  VdpCmdState <= stVdpCmdWaitCPU;
-                when VdpCmdLMMM =>
-                  VdpCmdState <= stVdpCmdRdVram;
-                when VdpCmdLMMV | VdpCmdLINE | VdpCmdPSET =>
-                  VdpCmdVramWrData <= VdpCmdCLR;
-                  VdpCmdState <= stVdpCmdPreRdVram;
-                when VdpCmdSRCH =>
-                  VdpCmdState <= stVdpCmdRdVram;
-                when VdpCmdPOINT =>
-                  VdpCmdState <= stVdpCmdRdVram;
-                when others =>
-                  VdpCmdState <= stVdpCmdExecEnd;
-              end case;
-            end if;
-            if( (initializing = '0') and (nxLoopEnd = '1') ) then
-              VdpCmdNXTmp <= nxCount;
-              if VdpCmdCMR(7 downto 4) = VdpCmdYMMM then
-                VdpCmdSXTmp <= "00" & VdpCmdDX;
-              else
-                VdpCmdSXTmp <= "00" & VdpCmdSX;
-              end if;
-              VdpCmdDXTmp <= '0' & VdpCmdDX;
-              VdpCmdNY <= VdpCmdNY - 1;
-              if (VdpCmdCMR(5) /= VdpCmdCMR(4)) then
-                -- bit5 /= bit4 is true for commands YMMM, HMMM, LMCM, LMMM
-                VdpCmdSy <= VdpCmdSy + yCountDelta;
-              end if;
-              if (VdpCmdCMR(7 downto 4) /= VdpCmdLMCM) then
-                VdpCmdDY <= VdpCmdDY + yCountDelta;
-              end if;
-            else
-              VdpCmdSXTmp(10) <= '0';
-            end if;
-            initializing := '0';
-          when others =>
---          when stVdpCmdExecEnd =>
-            VdpCmdState <= stVdpCmdIdle;
-            VdpCmdCE <= '0';
-            VdpCmdCMR <= (others => '0');
---          when others =>
---            VdpCmdState <= stVdpCmdIdle;
-        end case;
-      end if;
-
-      if (VdpModeGraphic4 = '1') then
-        VdpCmdVramAccessAddr <= VdpVramAccessY(9 downto 0) & VdpVramAccessX(7 downto 1);
-      elsif (VdpModeGraphic5  = '1') then
-        VdpCmdVramAccessAddr <= VdpVramAccessY(9 downto 0) & VdpVramAccessX(8 downto 2);
-      elsif (VdpModeGraphic6  = '1') then
-        VdpCmdVramAccessAddr <= VdpVramAccessY(8 downto 0) & VdpVramAccessX(8 downto 1);
-      else
-        VdpCmdVramAccessAddr <= VdpVramAccessY(8 downto 0) & VdpVramAccessX(7 downto 0);
-      end if;
-
-    end if;
-  end process;
-
-  -----------------------------------------------------------------------------
-  --
-  -- Debug Window
-  --
-  -----------------------------------------------------------------------------
-
-  process( clk21m, reset )
-    variable debWindowV : std_logic;
-    variable tiling : std_logic;
-  begin
-    if (reset = '1') then
-      debugWindowMode <= (others => '0');
-      iVideoR_debwin <= (others => '0');
-      iVideoG_debwin <= (others => '0');
-      iVideoB_debwin <= (others => '0');
-      debWindow <= '0';
-      tiling := '0';
-    elsif (clk21m'event and clk21m = '1') then
-
-      dDebugWindowToggle <= debugWindowToggle;
-      if( debugWindowToggle /= dDebugWindowToggle ) then
-        if( debugWindowMode = "101" ) then
-          debugWindowMode <= (others => '0');
-        else
-          debugWindowMode <= debugWindowMode + 1;
-        end if;
-      end if;
-      
-      debWindowV := '0';
-
-      if( (dotState = "00") or (dotState = "01") ) then
-        tiling := preDotCounter_yp(0);
-      else
-        tiling := not preDotCounter_yp(0);
-      end if;
-
-      case debugWindowMode is
-        when "001" =>
-          if( vsyncIntReq /= vsyncIntAck ) then
-            if( (VdpR1VSyncIntEn = '1') or (tiling = '1') ) then
-              iVideoG_debwin <= "10";
-            else
-              iVideoG_debwin <= (others => '0');
-            end if;
-            debWindowV := '1';
-          else
-            iVideoG_debwin <= (others => '0');
-          end if;
-          iVideoR_debwin <= (others => '0');
-          iVideoB_debwin <= (others => '0');
-        when "010" =>
-          if( hsyncIntReq /= hsyncIntAck) then
-            if( (VdpR0HSyncIntEn = '1') or (tiling = '1') ) then
-              iVideoR_debwin <= "10";
-            else
-              iVideoR_debwin <= (others => '0');
-            end if;
-            debWindowV := '1';
-          else
-            iVideoR_debwin <= (others => '0');
-          end if;
-          iVideoG_debwin <= (others => '0');
-          iVideoB_debwin <= (others => '0');
-        when "011" =>
-          -- sprite debugging
-          if( window = '1' and vdpR1DispOn = '1' and spriteColorOut = '1' and
-              VdpModeText1 = '0' and VdpModeText2 = '0') then
-            iVideoB_debwin <= "11";
-          elsif( (VdpR8SpOff = '1') and (tiling = '1') ) then
-            iVideoB_debwin <= "10";
-          else
-            iVideoB_debwin <= (others => '0');
-          end if;
-          iVideoR_debwin <= (others => '0');
-          iVideoG_debwin <= (others => '0');
-        when "100" =>
-          -- palette fixing
-          iVideoR_debwin <= paletteAddr_out(3 downto 2);
-          iVideoG_debwin <= paletteAddr_out(1) & paletteAddr_out(1);
-          iVideoB_debwin <= paletteAddr_out(0) & paletteAddr_out(0);
-        when "101" =>
-          -- On-Screen-Display
-          iVideoR_debwin <= osdVideoR(3 downto 2);
-          iVideoG_debwin <= osdVideoG(3 downto 2);
-          iVideoB_debwin <= osdVideoB(3 downto 2);
-        when others => null;
-      end case;
-
-
-      -- window signal
-      if( debugWindowMode /= 0 ) then
---        debWindow <= debWindowV;
-        debWindow <= '1';
-      else
-        debWindow <= '0';
-      end if;
-    end if;
-  end process;
-  
-  osd0: osd port map(clk21m, reset, h_counter, preDotCounter_yp(7 downto 0),
-                     osdLocateXMaster, osdLocateYMaster, osdCharCodeInMaster, osdCharMasterWrReq, osdCharMasterWrAck,
-                     osdVideoR, osdVideoG, osdVideoB);
-
-  --
-  -- osd arbitor
-  --
-  osdCharWrAck <= iOsdCharWrAck;
-  
-  process( clk21m, reset )
-    variable state : std_logic_vector(1 downto 0);
-  begin
-    if (reset = '1') then
-      state := "00";
-      iOsdCharWrAck <= '0';
-      osdCharLocalWrAck <= '0';
-      osdCharCodeInMaster <= (others => '0');
-      osdCharMasterWrReq <= '0';
-    elsif (clk21m'event and clk21m = '1') then
-      case state is
-        when "00" =>
-          if( osdCharWrReq /= iOsdCharWrAck ) then
-            osdLocateXMaster <= osdLocateX;
-            osdLocateYMaster <= osdLocateY;
-            osdCharCodeInMaster <= osdCharCodeIn;
-            osdCharMasterWrReq <= not osdCharMasterWrAck;
-            state := "10";
-          elsif( osdCharLocalWrReq /= osdCharLocalWrAck ) then
-            osdLocateXMaster <= osdLocateXLocal;
-            osdLocateYMaster <= osdLocateYLocal;
-            osdCharCodeInMaster <= osdCharCodeInLocal;
-            osdCharMasterWrReq <= not osdCharMasterWrAck;
-            state := "11";
-          end if;
-        when "10" =>
-          if( osdCharMasterWrReq = osdCharMasterWrAck ) then
-            iOsdCharWrAck <= osdCharWrReq;
-            state := "00";
-          end if;
-        when "11" =>
-          if( osdCharMasterWrReq = osdCharMasterWrAck ) then
-            osdCharLocalWrAck <= osdCharLocalWrReq;
-            state := "00";
-          end if;
-        when others => null;
-      end case;
-    end if;
-  end process;
-
-
-  --
-  -- Output VDP information to OSD.
-  --
-  registerRamAddr_out <= debugRegNumSel;
-  debugRegData <= registerRamReadData;
-
-  process( clk21m, reset )
-    constant str : string  := "VDP Registers";
-    constant str2 : string := "   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F";
-    constant str3 : string := "0:00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00";
-    constant hexchar : string := "0123456789ABCDEF";
-    variable state : std_logic_vector(3 downto 0);
-    variable x  : std_logic_vector(7 downto 0);
-    variable x2 : std_logic_vector(3 downto 0);
-  begin
-    if (reset = '1') then
-      osdLocateXLocal <= (others => '0');
-      osdLocateYLocal <= (others => '0');
-      osdCharCodeInLocal <= (others => '0');
-      osdCharLocalWrReq <= '0';
-      debugRegNumSel <= (others => '0');
-      x := (others => '0');
-      x2 := (others => '0');
-      state := (others => '0');
-    elsif (clk21m'event and clk21m = '1') then
-      
-      case state is
-        -- print str 
-        when X"0" =>
-          osdLocateXLocal <= (others => '0');
-          osdLocateYLocal <= conv_std_logic_vector(2, osdLocateYLocal'length);
-          x := (others => '0');
-          state := X"1";
-        when X"1" =>
-          osdCharCodeInLocal <= char_to_std_logic_vector(str(conv_integer(x)+1));
-          osdCharLocalWrReq <= not osdCharLocalWrAck;
-          state := X"2";
-        when X"2" =>
-          -- waiting wr ack
-          if( osdCharLocalWrReq = osdCharLocalWrAck ) then
---            if( x = str'length -1) then
-            if( x = 12) then
-              state := X"3";
-            else
-              x := x+1;
-              osdLocateXLocal <= osdLocateXLocal + 1;
-              state := X"1";
-            end if;
-          end if;
-        -- print str2
-        when X"3" =>
-          osdLocateXLocal <= (others => '0');
-          osdLocateYLocal <= conv_std_logic_vector(3, osdLocateYLocal'length);
-          x  := (others => '0');
-          state := X"4";
-        when X"4" =>
-          osdCharCodeInLocal <= char_to_std_logic_vector(str2(conv_integer(x)+1));
-          osdCharLocalWrReq <= not osdCharLocalWrAck;
-          state := X"5";
-        when X"5" =>
-          -- waiting wr ack
-          if( osdCharLocalWrReq = osdCharLocalWrAck ) then
---            if( x = str2'length -1) then
-            if( x = 49) then
-              state := X"8";
-            else
-              x := x+1;
-              osdLocateXLocal <= osdLocateXLocal + 1;
-              state := X"4";
-            end if;
-          end if;
-        -- print str3
-        when X"8" =>
-          osdLocateXLocal <= (others => '0');
-          osdLocateYLocal <= ("00" & debugRegNumSel(6 downto 4)) + 4;
-          x := (others => '0');
-          x2 := conv_std_logic_vector(1, x2'length);
-          state := X"9";
-        when X"9" =>
-          if( x = 0 ) then
-            osdCharCodeInLocal <= char_to_std_logic_vector(hexchar(conv_integer(debugRegNumSel(7 downto 4))+1));
-          elsif( x2 = 0) then
-            osdCharCodeInLocal <= char_to_std_logic_vector(hexchar(conv_integer(debugRegData(7 downto 4))+1));
-          elsif( x2 = 1) then
-            osdCharCodeInLocal <= char_to_std_logic_vector(hexchar(conv_integer(debugRegData(3 downto 0))+1));
-            if( x /= 0 ) then
-              debugRegNumSel <= debugRegNumSel + 1;
-            end if;
-          else
-            osdCharCodeInLocal <= char_to_std_logic_vector(str3(conv_integer(x)+1));
-          end if;
-          osdCharLocalWrReq <= not osdCharLocalWrAck;
-          state := X"A";
-          if( x2 = 2) then
-            x2 := (others => '0');
-          else
-            x2 := x2 + 1;
-          end if;
-        when X"A" =>
-          -- waiting wr ack
-          if( osdCharLocalWrReq = osdCharLocalWrAck ) then
-              if( debugRegNumSel = 47 ) then
-                debugRegNumSel <= (others => '0');
-                state := X"8";
-              else
---            if( x = str2'length -1) then
-                if( x = 49) then
-                  state := X"8";
-                else
-                  x := x+1;
-                  osdLocateXLocal <= osdLocateXLocal + 1;
-                  state := X"9";
-                end if;
-              end if;
-          end if;
-        when others => null;
-      end case;
-    end if;
-  end process;
-end rtl;
+END VDP;
+
+ARCHITECTURE RTL OF VDP IS
+    COMPONENT VDP_SSG
+        PORT(
+            RESET                   : IN    STD_LOGIC;
+            CLK21M                  : IN    STD_LOGIC;
+
+            H_CNT                   : OUT   STD_LOGIC_VECTOR( 10 DOWNTO 0 );
+            V_CNT                   : OUT   STD_LOGIC_VECTOR( 10 DOWNTO 0 );
+            DOTSTATE                : OUT   STD_LOGIC_VECTOR(  1 DOWNTO 0 );
+            EIGHTDOTSTATE           : OUT   STD_LOGIC_VECTOR(  2 DOWNTO 0 );
+            PREDOTCOUNTER_X         : OUT   STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+            PREDOTCOUNTER_Y         : OUT   STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+            PREDOTCOUNTER_YP        : OUT   STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+            PREWINDOW_Y             : OUT   STD_LOGIC;
+            PREWINDOW_Y_SP          : OUT   STD_LOGIC;
+            FIELD                   : OUT   STD_LOGIC;
+            WINDOW_X                : OUT   STD_LOGIC;
+            PVIDEODHCLK             : OUT   STD_LOGIC;
+            PVIDEODLCLK             : OUT   STD_LOGIC;
+            IVIDEOVS_N              : OUT   STD_LOGIC;
+
+            HD                      : OUT   STD_LOGIC;
+            VD                      : OUT   STD_LOGIC;
+            HSYNC                   : OUT   STD_LOGIC;
+            ENAHSYNC                : OUT   STD_LOGIC;
+            V_BLANKING_START        : OUT   STD_LOGIC;
+
+            VDPR9PALMODE            : IN    STD_LOGIC;
+            REG_R9_INTERLACE_MODE   : IN    STD_LOGIC;
+            REG_R9_Y_DOTS           : IN    STD_LOGIC;
+            REG_R18_ADJ             : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            REG_R23_VSTART_LINE     : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            REG_R25_MSK             : IN    STD_LOGIC;
+            REG_R27_H_SCROLL        : IN    STD_LOGIC_VECTOR(  2 DOWNTO 0 );
+            REG_R25_YJK             : IN    STD_LOGIC;
+            CENTERYJK_R25_N         : IN    STD_LOGIC
+        );
+    END COMPONENT;
+
+    COMPONENT VDP_INTERRUPT
+        PORT(
+            RESET                   : IN    STD_LOGIC;
+            CLK21M                  : IN    STD_LOGIC;
+
+            H_CNT                   : IN    STD_LOGIC_VECTOR( 10 DOWNTO 0 );
+            Y_CNT                   : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            ACTIVE_LINE             : IN    STD_LOGIC;
+            V_BLANKING_START        : IN    STD_LOGIC;
+            CLR_VSYNC_INT           : IN    STD_LOGIC;
+            CLR_HSYNC_INT           : IN    STD_LOGIC;
+            REQ_VSYNC_INT_N         : OUT   STD_LOGIC;
+            REQ_HSYNC_INT_N         : OUT   STD_LOGIC;
+            REG_R19_HSYNC_INT_LINE  : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 )
+        );
+    END COMPONENT;
+
+    COMPONENT VDP_SPRITE
+        PORT(
+            -- VDP CLOCK ... 21.477MHZ
+            CLK21M                      : IN    STD_LOGIC;
+            RESET                       : IN    STD_LOGIC;
+
+            DOTSTATE                    : IN    STD_LOGIC_VECTOR(  1 DOWNTO 0 );
+            EIGHTDOTSTATE               : IN    STD_LOGIC_VECTOR(  2 DOWNTO 0 );
+
+            DOTCOUNTERX                 : IN    STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+            DOTCOUNTERYP                : IN    STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+            BWINDOW_Y                   : IN    STD_LOGIC;
+
+            -- VDP STATUS REGISTERS OF SPRITE
+            PVDPS0SPCOLLISIONINCIDENCE  : OUT   STD_LOGIC;
+            PVDPS0SPOVERMAPPED          : OUT   STD_LOGIC;
+            PVDPS0SPOVERMAPPEDNUM       : OUT   STD_LOGIC_VECTOR(  4 DOWNTO 0 );
+            PVDPS3S4SPCOLLISIONX        : OUT   STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+            PVDPS5S6SPCOLLISIONY        : OUT   STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+            PVDPS0RESETREQ              : IN    STD_LOGIC;
+            PVDPS0RESETACK              : OUT   STD_LOGIC;
+            PVDPS5RESETREQ              : IN    STD_LOGIC;
+            PVDPS5RESETACK              : OUT   STD_LOGIC;
+            -- VDP REGISTERS
+            REG_R1_SP_SIZE              : IN    STD_LOGIC;
+            REG_R1_SP_ZOOM              : IN    STD_LOGIC;
+            REG_R11R5_SP_ATR_ADDR       : IN    STD_LOGIC_VECTOR(  9 DOWNTO 0 );
+            REG_R6_SP_GEN_ADDR          : IN    STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            REG_R8_COL0_ON              : IN    STD_LOGIC;
+            REG_R8_SP_OFF               : IN    STD_LOGIC;
+            REG_R23_VSTART_LINE         : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            REG_R27_H_SCROLL            : IN    STD_LOGIC_VECTOR(  2 DOWNTO 0 );
+            SPMODE2                     : IN    STD_LOGIC;
+            VRAMINTERLEAVEMODE          : IN    STD_LOGIC;
+
+            SPVRAMACCESSING             : OUT   STD_LOGIC;
+
+            PRAMDAT                     : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            PRAMADR                     : OUT   STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+
+            -- JP: スプライトを描画した時に'1'になる。カラーコード0で
+            -- JP: 描画する事もできるので、このビットが必要
+            SPCOLOROUT                  : OUT   STD_LOGIC;
+            -- OUTPUT COLOR
+            SPCOLORCODE                 : OUT   STD_LOGIC_VECTOR(  3 DOWNTO 0 )
+        );
+    END COMPONENT;
+
+    COMPONENT RAM
+        PORT(
+            ADR     : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            CLK     : IN    STD_LOGIC;
+            WE      : IN    STD_LOGIC;
+            DBO     : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            DBI     : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 )
+        );
+    END COMPONENT;
+
+    COMPONENT VDP_NTSC_PAL
+        PORT(
+            CLK21M              : IN    STD_LOGIC;
+            RESET               : IN    STD_LOGIC;
+            -- MODE
+            PALMODE             : IN    STD_LOGIC;
+            INTERLACEMODE       : IN    STD_LOGIC;
+            -- VIDEO INPUT
+            VIDEORIN            : IN    STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            VIDEOGIN            : IN    STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            VIDEOBIN            : IN    STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            VIDEOVSIN_N         : IN    STD_LOGIC;
+            HCOUNTERIN          : IN    STD_LOGIC_VECTOR( 10 DOWNTO 0 );
+            VCOUNTERIN          : IN    STD_LOGIC_VECTOR( 10 DOWNTO 0 );
+            -- VIDEO OUTPUT
+            VIDEOROUT           : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            VIDEOGOUT           : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            VIDEOBOUT           : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            VIDEOHSOUT_N        : OUT   STD_LOGIC;
+            VIDEOVSOUT_N        : OUT   STD_LOGIC
+        );
+    END COMPONENT;
+
+    COMPONENT VDP_VGA
+        PORT(
+            CLK21M              : IN    STD_LOGIC;
+            RESET               : IN    STD_LOGIC;
+            -- VIDEO INPUT
+            VIDEORIN            : IN    STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            VIDEOGIN            : IN    STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            VIDEOBIN            : IN    STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            VIDEOVSIN_N         : IN    STD_LOGIC;
+            HCOUNTERIN          : IN    STD_LOGIC_VECTOR( 10 DOWNTO 0 );
+            VCOUNTERIN          : IN    STD_LOGIC_VECTOR( 10 DOWNTO 0 );
+            -- MODE
+            PALMODE             : IN    STD_LOGIC;
+            INTERLACEMODE       : IN    STD_LOGIC;
+            LEGACY_VGA          : IN    STD_LOGIC;
+            -- VIDEO OUTPUT
+            VIDEOROUT           : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            VIDEOGOUT           : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            VIDEOBOUT           : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            VIDEOHSOUT_N        : OUT   STD_LOGIC;
+            VIDEOVSOUT_N        : OUT   STD_LOGIC;
+            -- SWITCHED I/O SIGNALS
+            RATIOMODE           : IN    STD_LOGIC_VECTOR(  2 DOWNTO 0 )
+            );
+    END COMPONENT;
+
+    COMPONENT VDP_COMMAND
+        PORT(
+            RESET               : IN    STD_LOGIC;
+            CLK21M              : IN    STD_LOGIC;
+
+            VDPMODEGRAPHIC4     : IN    STD_LOGIC;
+            VDPMODEGRAPHIC5     : IN    STD_LOGIC;
+            VDPMODEGRAPHIC6     : IN    STD_LOGIC;
+            VDPMODEGRAPHIC7     : IN    STD_LOGIC;
+            VDPMODEISHIGHRES    : IN    STD_LOGIC;
+
+            VRAMWRACK           : IN    STD_LOGIC;
+            VRAMRDACK           : IN    STD_LOGIC;
+            VRAMREADINGR        : IN    STD_LOGIC;
+            VRAMREADINGA        : IN    STD_LOGIC;
+            VRAMRDDATA          : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            REGWRREQ            : IN    STD_LOGIC;
+            TRCLRREQ            : IN    STD_LOGIC;
+            REGNUM              : IN    STD_LOGIC_VECTOR(  3 DOWNTO 0 );
+            REGDATA             : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            PREGWRACK           : OUT   STD_LOGIC;
+            PTRCLRACK           : OUT   STD_LOGIC;
+            PVRAMWRREQ          : OUT   STD_LOGIC;
+            PVRAMRDREQ          : OUT   STD_LOGIC;
+            PVRAMACCESSADDR     : OUT   STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+            PVRAMWRDATA         : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            PCLR                : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );    -- R44, S#7
+            PCE                 : OUT   STD_LOGIC;                          -- S#2 (BIT 0)
+            PBD                 : OUT   STD_LOGIC;                          -- S#2 (BIT 4)
+            PTR                 : OUT   STD_LOGIC;                          -- S#2 (BIT 7)
+            PSXTMP              : OUT   STD_LOGIC_VECTOR( 10 DOWNTO 0 );    -- S#8, S#9
+
+            CUR_VDP_COMMAND     : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 4 );
+
+            REG_R25_CMD         : IN    STD_LOGIC
+        );
+    END COMPONENT;
+
+    COMPONENT VDP_WAIT_CONTROL
+        PORT(
+            RESET           : IN    STD_LOGIC;
+            CLK21M          : IN    STD_LOGIC;
+
+            VDP_COMMAND     : IN    STD_LOGIC_VECTOR(  7 DOWNTO 4 );
+
+            VDPR9PALMODE    : IN    STD_LOGIC;      -- 0=60Hz (NTSC), 1=50Hz (PAL)
+            REG_R1_DISP_ON  : IN    STD_LOGIC;      -- 0=Display Off, 1=Display On
+            REG_R8_SP_OFF   : IN    STD_LOGIC;      -- 0=Sprite On, 1=Sprite Off
+            REG_R9_Y_DOTS   : IN    STD_LOGIC;      -- 0=192 Lines, 1=212 Lines
+
+            VDPSPEEDMODE    : IN    STD_LOGIC;
+            DRIVE           : IN    STD_LOGIC;
+
+            ACTIVE          : OUT   STD_LOGIC
+        );
+    END COMPONENT;
+
+    COMPONENT VDP_COLORDEC
+        PORT(
+            RESET               : IN    STD_LOGIC;
+            CLK21M              : IN    STD_LOGIC;
+
+            DOTSTATE            : IN    STD_LOGIC_VECTOR(  1 DOWNTO 0 );
+
+            PPALETTEADDR_OUT    : OUT   STD_LOGIC_VECTOR(  3 DOWNTO 0 );
+            PALETTEDATARB_OUT   : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            PALETTEDATAG_OUT    : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+
+            VDPMODETEXT1        : IN    STD_LOGIC;
+            VDPMODETEXT2        : IN    STD_LOGIC;
+            VDPMODEMULTI        : IN    STD_LOGIC;
+            VDPMODEGRAPHIC1     : IN    STD_LOGIC;
+            VDPMODEGRAPHIC2     : IN    STD_LOGIC;
+            VDPMODEGRAPHIC3     : IN    STD_LOGIC;
+            VDPMODEGRAPHIC4     : IN    STD_LOGIC;
+            VDPMODEGRAPHIC5     : IN    STD_LOGIC;
+            VDPMODEGRAPHIC6     : IN    STD_LOGIC;
+            VDPMODEGRAPHIC7     : IN    STD_LOGIC;
+
+            WINDOW              : IN    STD_LOGIC;
+            SPRITECOLOROUT      : IN    STD_LOGIC;
+            COLORCODET12        : IN    STD_LOGIC_VECTOR(  3 DOWNTO 0 );
+            COLORCODEG123M      : IN    STD_LOGIC_VECTOR(  3 DOWNTO 0 );
+            COLORCODEG4567      : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            COLORCODESPRITE     : IN    STD_LOGIC_VECTOR(  3 DOWNTO 0 );
+            P_YJK_R             : IN    STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            P_YJK_G             : IN    STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            P_YJK_B             : IN    STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            P_YJK_EN            : IN    STD_LOGIC;
+
+            PVIDEOR_VDP         : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            PVIDEOG_VDP         : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            PVIDEOB_VDP         : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+
+            REG_R1_DISP_ON      : IN    STD_LOGIC;
+            REG_R7_FRAME_COL    : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            REG_R8_COL0_ON      : IN    STD_LOGIC;
+            REG_R25_YJK         : IN    STD_LOGIC
+        );
+    END COMPONENT;
+
+    COMPONENT VDP_TEXT12
+        PORT(
+            -- VDP CLOCK ... 21.477MHZ
+            CLK21M                      : IN    STD_LOGIC;
+            RESET                       : IN    STD_LOGIC;
+
+            DOTSTATE                    : IN    STD_LOGIC_VECTOR(  1 DOWNTO 0 );
+            DOTCOUNTERX                 : IN    STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+            DOTCOUNTERY                 : IN    STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+
+            VDPMODETEXT1                : IN    STD_LOGIC;
+            VDPMODETEXT2                : IN    STD_LOGIC;
+
+            -- REGISTERS
+            REG_R7_FRAME_COL            : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            REG_R12_BLINK_MODE          : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            REG_R13_BLINK_PERIOD        : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+
+            REG_R2_PT_NAM_ADDR          : IN    STD_LOGIC_VECTOR(  6 DOWNTO 0 );
+            REG_R4_PT_GEN_ADDR          : IN    STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            REG_R10R3_COL_ADDR          : IN    STD_LOGIC_VECTOR( 10 DOWNTO 0 );
+            --
+            PRAMDAT                     : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            PRAMADR                     : OUT   STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+            TXVRAMREADEN                : OUT   STD_LOGIC;
+
+            PCOLORCODE                  : OUT   STD_LOGIC_VECTOR(  3 DOWNTO 0 )
+        );
+    END COMPONENT;
+
+    COMPONENT VDP_GRAPHIC123M
+        PORT(
+            CLK21M                      : IN    STD_LOGIC;      --  21.477MHZ
+            RESET                       : IN    STD_LOGIC;
+
+            -- CONTROL SIGNALS
+            DOTSTATE                    : IN    STD_LOGIC_VECTOR(  1 DOWNTO 0 );
+            EIGHTDOTSTATE               : IN    STD_LOGIC_VECTOR(  2 DOWNTO 0 );
+            DOTCOUNTERX                 : IN    STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+            DOTCOUNTERY                 : IN    STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+
+            VDPMODEMULTI                : IN    STD_LOGIC;
+            VDPMODEGRAPHIC1             : IN    STD_LOGIC;
+            VDPMODEGRAPHIC2             : IN    STD_LOGIC;
+            VDPMODEGRAPHIC3             : IN    STD_LOGIC;
+
+            -- REGISTERS
+            REG_R2_PT_NAM_ADDR          : IN    STD_LOGIC_VECTOR(  6 DOWNTO 0 );
+            REG_R4_PT_GEN_ADDR          : IN    STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            REG_R10R3_COL_ADDR          : IN    STD_LOGIC_VECTOR( 10 DOWNTO 0 );
+            REG_R26_H_SCROLL            : IN    STD_LOGIC_VECTOR(  8 DOWNTO 3 );
+            REG_R27_H_SCROLL            : IN    STD_LOGIC_VECTOR(  2 DOWNTO 0 );
+            --
+            PRAMDAT                     : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            PRAMADR                     : OUT   STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+
+            PCOLORCODE                  : OUT   STD_LOGIC_VECTOR(  3 DOWNTO 0 )
+        );
+    END COMPONENT;
+
+    COMPONENT VDP_GRAPHIC4567
+        PORT(
+            -- VDP CLOCK ... 21.477MHZ
+            CLK21M                  : IN    STD_LOGIC;
+            RESET                   : IN    STD_LOGIC;
+
+            DOTSTATE                : IN    STD_LOGIC_VECTOR(  1 DOWNTO 0 );
+            EIGHTDOTSTATE           : IN    STD_LOGIC_VECTOR(  2 DOWNTO 0 );
+            DOTCOUNTERX             : IN    STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+            DOTCOUNTERY             : IN    STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+
+            VDPMODEGRAPHIC4         : IN    STD_LOGIC;
+            VDPMODEGRAPHIC5         : IN    STD_LOGIC;
+            VDPMODEGRAPHIC6         : IN    STD_LOGIC;
+            VDPMODEGRAPHIC7         : IN    STD_LOGIC;
+
+            -- REGISTERS
+            REG_R2_PT_NAM_ADDR      : IN    STD_LOGIC_VECTOR(  6 DOWNTO 0 );
+            REG_R26_H_SCROLL        : IN    STD_LOGIC_VECTOR(  8 DOWNTO 3 );
+            REG_R27_H_SCROLL        : IN    STD_LOGIC_VECTOR(  2 DOWNTO 0 );
+            REG_R25_YAE             : IN    STD_LOGIC;
+            REG_R25_YJK             : IN    STD_LOGIC;
+            REG_R25_SP2             : IN    STD_LOGIC;
+
+            --
+            PRAMDAT                 : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            PRAMDATPAIR             : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            PRAMADR                 : OUT   STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+
+            PCOLORCODE              : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+
+            P_YJK_R                 : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            P_YJK_G                 : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            P_YJK_B                 : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            P_YJK_EN                : OUT   STD_LOGIC
+        );
+    END COMPONENT;
+
+    COMPONENT VDP_REGISTER
+        PORT(
+            RESET                       : IN    STD_LOGIC;
+            CLK21M                      : IN    STD_LOGIC;
+
+            REQ                         : IN    STD_LOGIC;
+            ACK                         : OUT   STD_LOGIC;
+            WRT                         : IN    STD_LOGIC;
+            ADR                         : IN    STD_LOGIC_VECTOR( 15 DOWNTO 0 );
+            DBI                         : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            DBO                         : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+
+            DOTSTATE                    : IN    STD_LOGIC_VECTOR(  1 DOWNTO 0 );
+
+            VDPCMDTRCLRACK              : IN    STD_LOGIC;
+            VDPCMDREGWRACK              : IN    STD_LOGIC;
+            HSYNC                       : IN    STD_LOGIC;
+
+            VDPS0SPCOLLISIONINCIDENCE   : IN    STD_LOGIC;
+            VDPS0SPOVERMAPPED           : IN    STD_LOGIC;
+            VDPS0SPOVERMAPPEDNUM        : IN    STD_LOGIC_VECTOR(  4 DOWNTO 0 );
+            SPVDPS0RESETREQ             : OUT   STD_LOGIC;
+            SPVDPS0RESETACK             : IN    STD_LOGIC;
+            SPVDPS5RESETREQ             : OUT   STD_LOGIC;
+            SPVDPS5RESETACK             : IN    STD_LOGIC;
+
+            VDPCMDTR                    : IN    STD_LOGIC;                          -- S#2
+            VD                          : IN    STD_LOGIC;                          -- S#2
+            HD                          : IN    STD_LOGIC;                          -- S#2
+            VDPCMDBD                    : IN    STD_LOGIC;                          -- S#2
+            FIELD                       : IN    STD_LOGIC;                          -- S#2
+            VDPCMDCE                    : IN    STD_LOGIC;                          -- S#2
+            VDPS3S4SPCOLLISIONX         : IN    STD_LOGIC_VECTOR(  8 DOWNTO 0 );    -- S#3,S#4
+            VDPS5S6SPCOLLISIONY         : IN    STD_LOGIC_VECTOR(  8 DOWNTO 0 );    -- S#5,S#6
+            VDPCMDCLR                   : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );    -- R44,S#7
+            VDPCMDSXTMP                 : IN    STD_LOGIC_VECTOR( 10 DOWNTO 0 );    -- S#8,S#9
+
+            VDPVRAMACCESSDATA           : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            VDPVRAMACCESSADDRTMP        : OUT   STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+            VDPVRAMADDRSETREQ           : OUT   STD_LOGIC;
+            VDPVRAMADDRSETACK           : IN    STD_LOGIC;
+            VDPVRAMWRREQ                : OUT   STD_LOGIC;
+            VDPVRAMWRACK                : IN    STD_LOGIC;
+            VDPVRAMRDDATA               : IN    STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            VDPVRAMRDREQ                : OUT   STD_LOGIC;
+            VDPVRAMRDACK                : IN    STD_LOGIC;
+
+            VDPCMDREGNUM                : OUT   STD_LOGIC_VECTOR(  3 DOWNTO 0 );
+            VDPCMDREGDATA               : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            VDPCMDREGWRREQ              : OUT   STD_LOGIC;
+            VDPCMDTRCLRREQ              : OUT   STD_LOGIC;
+
+            PALETTEADDR_OUT             : IN    STD_LOGIC_VECTOR(  3 DOWNTO 0 );
+            PALETTEDATARB_OUT           : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            PALETTEDATAG_OUT            : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+
+            -- INTERRUPT
+            CLR_VSYNC_INT               : OUT   STD_LOGIC;
+            CLR_HSYNC_INT               : OUT   STD_LOGIC;
+            REQ_VSYNC_INT_N             : IN    STD_LOGIC;
+            REQ_HSYNC_INT_N             : IN    STD_LOGIC;
+
+            -- REGISTER VALUE
+            REG_R0_HSYNC_INT_EN         : OUT   STD_LOGIC;
+            REG_R1_SP_SIZE              : OUT   STD_LOGIC;
+            REG_R1_SP_ZOOM              : OUT   STD_LOGIC;
+            REG_R1_VSYNC_INT_EN         : OUT   STD_LOGIC;
+            REG_R1_DISP_ON              : OUT   STD_LOGIC;
+            REG_R2_PT_NAM_ADDR          : OUT   STD_LOGIC_VECTOR(  6 DOWNTO 0 );
+            REG_R4_PT_GEN_ADDR          : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            REG_R10R3_COL_ADDR          : OUT   STD_LOGIC_VECTOR( 10 DOWNTO 0 );
+            REG_R11R5_SP_ATR_ADDR       : OUT   STD_LOGIC_VECTOR(  9 DOWNTO 0 );
+            REG_R6_SP_GEN_ADDR          : OUT   STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+            REG_R7_FRAME_COL            : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            REG_R8_SP_OFF               : OUT   STD_LOGIC;
+            REG_R8_COL0_ON              : OUT   STD_LOGIC;
+            REG_R9_PAL_MODE             : OUT   STD_LOGIC;
+            REG_R9_INTERLACE_MODE       : OUT   STD_LOGIC;
+            REG_R9_Y_DOTS               : OUT   STD_LOGIC;
+            REG_R12_BLINK_MODE          : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            REG_R13_BLINK_PERIOD        : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            REG_R18_ADJ                 : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            REG_R19_HSYNC_INT_LINE      : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            REG_R23_VSTART_LINE         : OUT   STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+            REG_R25_CMD                 : OUT   STD_LOGIC;
+            REG_R25_YAE                 : OUT   STD_LOGIC;
+            REG_R25_YJK                 : OUT   STD_LOGIC;
+            REG_R25_MSK                 : OUT   STD_LOGIC;
+            REG_R25_SP2                 : OUT   STD_LOGIC;
+            REG_R26_H_SCROLL            : OUT   STD_LOGIC_VECTOR(  8 DOWNTO 3 );
+            REG_R27_H_SCROLL            : OUT   STD_LOGIC_VECTOR(  2 DOWNTO 0 );
+
+            --  MODE
+            VDPMODETEXT1                : OUT   STD_LOGIC;
+            VDPMODETEXT2                : OUT   STD_LOGIC;
+            VDPMODEMULTI                : OUT   STD_LOGIC;
+            VDPMODEGRAPHIC1             : OUT   STD_LOGIC;
+            VDPMODEGRAPHIC2             : OUT   STD_LOGIC;
+            VDPMODEGRAPHIC3             : OUT   STD_LOGIC;
+            VDPMODEGRAPHIC4             : OUT   STD_LOGIC;
+            VDPMODEGRAPHIC5             : OUT   STD_LOGIC;
+            VDPMODEGRAPHIC6             : OUT   STD_LOGIC;
+            VDPMODEGRAPHIC7             : OUT   STD_LOGIC;
+            VDPMODEISHIGHRES            : OUT   STD_LOGIC;
+            SPMODE2                     : OUT   STD_LOGIC;
+            VDPMODEISVRAMINTERLEAVE     : OUT   STD_LOGIC;
+
+            -- SWITCHED I/O SIGNALS
+            FORCED_V_MODE               : IN    STD_LOGIC
+        );
+    END COMPONENT;
+
+    SIGNAL H_CNT                        : STD_LOGIC_VECTOR( 10 DOWNTO 0 );
+    SIGNAL V_CNT                        : STD_LOGIC_VECTOR( 10 DOWNTO 0 );
+
+    -- DISPLAY POSITIONS, ADAPTED FOR ADJUST(X,Y)
+    SIGNAL ADJUST_X                     : STD_LOGIC_VECTOR(  6 DOWNTO 0 );
+
+    -- DOT STATE REGISTER
+    SIGNAL DOTSTATE                     : STD_LOGIC_VECTOR(  1 DOWNTO 0 );
+    SIGNAL EIGHTDOTSTATE                : STD_LOGIC_VECTOR(  2 DOWNTO 0 );
+
+    -- DISPLAY FIELD SIGNAL
+    SIGNAL FIELD                        : STD_LOGIC;
+    SIGNAL HD                           : STD_LOGIC;
+    SIGNAL VD                           : STD_LOGIC;
+    SIGNAL ACTIVE_LINE                  : STD_LOGIC;
+    SIGNAL V_BLANKING_START             : STD_LOGIC;
+
+    -- FOR VSYNC INTERRUPT
+    SIGNAL VSYNCINT_N                   : STD_LOGIC;
+    SIGNAL CLR_VSYNC_INT                : STD_LOGIC;
+    SIGNAL REQ_VSYNC_INT_N              : STD_LOGIC;
+
+    -- FOR HSYNC INTERRUPT
+    SIGNAL HSYNCINT_N                   : STD_LOGIC;
+    SIGNAL CLR_HSYNC_INT                : STD_LOGIC;
+    SIGNAL REQ_HSYNC_INT_N              : STD_LOGIC;
+
+    SIGNAL DVIDEOHS_N                   : STD_LOGIC;
+
+    -- DISPLAY AREA FLAGS
+    SIGNAL WINDOW                       : STD_LOGIC;
+    SIGNAL WINDOW_X                     : STD_LOGIC;
+    SIGNAL PREWINDOW_X                  : STD_LOGIC;
+    SIGNAL PREWINDOW_Y                  : STD_LOGIC;
+    SIGNAL PREWINDOW_Y_SP               : STD_LOGIC;
+    SIGNAL PREWINDOW                    : STD_LOGIC;
+    SIGNAL PREWINDOW_SP                 : STD_LOGIC;
+    -- FOR FRAME ZONE
+    SIGNAL BWINDOW_X                    : STD_LOGIC;
+    SIGNAL BWINDOW_Y                    : STD_LOGIC;
+    SIGNAL BWINDOW                      : STD_LOGIC;
+
+    -- DOT COUNTER - 8 ( READING ADDR )
+    SIGNAL PREDOTCOUNTER_X              : STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+    SIGNAL PREDOTCOUNTER_Y              : STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+    -- Y COUNTERS INDEPENDENT OF VERTICAL SCROLL REGISTER
+    SIGNAL PREDOTCOUNTER_YP             : STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+
+    -- VDP REGISTER ACCESS
+    SIGNAL VDPVRAMACCESSADDR            : STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+    SIGNAL DISPMODEVGA                  : STD_LOGIC;
+    SIGNAL VDPVRAMREADINGR              : STD_LOGIC;
+    SIGNAL VDPVRAMREADINGA              : STD_LOGIC;
+    SIGNAL VDPR0DISPNUM                 : STD_LOGIC_VECTOR(  3 DOWNTO 1 );
+    SIGNAL VDPVRAMACCESSDATA            : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+    SIGNAL VDPVRAMACCESSADDRTMP         : STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+    SIGNAL VDPVRAMADDRSETREQ            : STD_LOGIC;
+    SIGNAL VDPVRAMADDRSETACK            : STD_LOGIC;
+    SIGNAL VDPVRAMWRREQ                 : STD_LOGIC;
+    SIGNAL VDPVRAMWRACK                 : STD_LOGIC;
+    SIGNAL VDPVRAMRDDATA                : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+    SIGNAL VDPVRAMRDREQ                 : STD_LOGIC;
+    SIGNAL VDPVRAMRDACK                 : STD_LOGIC;
+    SIGNAL VDPR9PALMODE                 : STD_LOGIC;
+
+    SIGNAL REG_R0_HSYNC_INT_EN          : STD_LOGIC;
+    SIGNAL REG_R1_SP_SIZE               : STD_LOGIC;
+    SIGNAL REG_R1_SP_ZOOM               : STD_LOGIC;
+    SIGNAL REG_R1_VSYNC_INT_EN          : STD_LOGIC;
+    SIGNAL REG_R1_DISP_ON               : STD_LOGIC;
+    SIGNAL REG_R2_PT_NAM_ADDR           : STD_LOGIC_VECTOR(  6 DOWNTO 0 );
+    SIGNAL REG_R4_PT_GEN_ADDR           : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL REG_R10R3_COL_ADDR           : STD_LOGIC_VECTOR( 10 DOWNTO 0 );
+    SIGNAL REG_R11R5_SP_ATR_ADDR        : STD_LOGIC_VECTOR(  9 DOWNTO 0 );
+    SIGNAL REG_R6_SP_GEN_ADDR           : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL REG_R7_FRAME_COL             : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+    SIGNAL REG_R8_SP_OFF                : STD_LOGIC;
+    SIGNAL REG_R8_COL0_ON               : STD_LOGIC;
+    SIGNAL REG_R9_PAL_MODE              : STD_LOGIC;
+    SIGNAL REG_R9_INTERLACE_MODE        : STD_LOGIC;
+    SIGNAL REG_R9_Y_DOTS                : STD_LOGIC;
+    SIGNAL REG_R12_BLINK_MODE           : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+    SIGNAL REG_R13_BLINK_PERIOD         : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+    SIGNAL REG_R18_ADJ                  : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+    SIGNAL REG_R19_HSYNC_INT_LINE       : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+    SIGNAL REG_R23_VSTART_LINE          : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+    SIGNAL REG_R25_CMD                  : STD_LOGIC;
+    SIGNAL REG_R25_YAE                  : STD_LOGIC;
+    SIGNAL REG_R25_YJK                  : STD_LOGIC;
+    SIGNAL REG_R25_MSK                  : STD_LOGIC;
+    SIGNAL REG_R25_SP2                  : STD_LOGIC;
+    SIGNAL REG_R26_H_SCROLL             : STD_LOGIC_VECTOR(  8 DOWNTO 3 );
+    SIGNAL REG_R27_H_SCROLL             : STD_LOGIC_VECTOR(  2 DOWNTO 0 );
+
+    SIGNAL VDPMODETEXT1                 : STD_LOGIC;    -- TEXT MODE 1      (SCREEN0 WIDTH 40)
+    SIGNAL VDPMODETEXT2                 : STD_LOGIC;    -- TEXT MODE 2      (SCREEN0 WIDTH 80)
+    SIGNAL VDPMODEMULTI                 : STD_LOGIC;    -- MULTICOLOR MODE  (SCREEN3)
+    SIGNAL VDPMODEGRAPHIC1              : STD_LOGIC;    -- GRAPHIC MODE 1   (SCREEN1)
+    SIGNAL VDPMODEGRAPHIC2              : STD_LOGIC;    -- GRAPHIC MODE 2   (SCREEN2)
+    SIGNAL VDPMODEGRAPHIC3              : STD_LOGIC;    -- GRAPHIC MODE 2   (SCREEN4)
+    SIGNAL VDPMODEGRAPHIC4              : STD_LOGIC;    -- GRAPHIC MODE 4   (SCREEN5)
+    SIGNAL VDPMODEGRAPHIC5              : STD_LOGIC;    -- GRAPHIC MODE 5   (SCREEN6)
+    SIGNAL VDPMODEGRAPHIC6              : STD_LOGIC;    -- GRAPHIC MODE 6   (SCREEN7)
+    SIGNAL VDPMODEGRAPHIC7              : STD_LOGIC;    -- GRAPHIC MODE 7   (SCREEN8,10,11,12)
+    SIGNAL VDPMODEISHIGHRES             : STD_LOGIC;    -- TRUE WHEN MODE GRAPHIC5, 6
+    SIGNAL VDPMODEISVRAMINTERLEAVE      : STD_LOGIC;    -- TRUE WHEN MODE GRAPHIC6, 7
+
+    -- FOR TEXT 1 AND 2
+    SIGNAL PRAMADRT12                   : STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+    SIGNAL COLORCODET12                 : STD_LOGIC_VECTOR(  3 DOWNTO 0 );
+    SIGNAL TXVRAMREADEN                 : STD_LOGIC;
+
+    -- FOR GRAPHIC 1,2,3 AND MULTI COLOR
+    SIGNAL PRAMADRG123M                 : STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+    SIGNAL COLORCODEG123M               : STD_LOGIC_VECTOR(  3 DOWNTO 0 );
+
+    -- FOR GRAPHIC 4,5,6,7
+    SIGNAL PRAMADRG4567                 : STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+    SIGNAL COLORCODEG4567               : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+    SIGNAL YJK_R                        : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL YJK_G                        : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL YJK_B                        : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL YJK_EN                       : STD_LOGIC;
+
+    -- SPRITE
+    SIGNAL SPMODE2                      : STD_LOGIC;
+    SIGNAL SPVRAMACCESSING              : STD_LOGIC;
+    SIGNAL PRAMADRSPRITE                : STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+    SIGNAL SPRITECOLOROUT               : STD_LOGIC;
+    SIGNAL COLORCODESPRITE              : STD_LOGIC_VECTOR(  3 DOWNTO 0 );
+    SIGNAL VDPS0SPCOLLISIONINCIDENCE    : STD_LOGIC;
+    SIGNAL VDPS0SPOVERMAPPED            : STD_LOGIC;
+    SIGNAL VDPS0SPOVERMAPPEDNUM         : STD_LOGIC_VECTOR(  4 DOWNTO 0 );
+    SIGNAL VDPS3S4SPCOLLISIONX          : STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+    SIGNAL VDPS5S6SPCOLLISIONY          : STD_LOGIC_VECTOR(  8 DOWNTO 0 );
+    SIGNAL SPVDPS0RESETREQ              : STD_LOGIC;
+    SIGNAL SPVDPS0RESETACK              : STD_LOGIC;
+    SIGNAL SPVDPS5RESETREQ              : STD_LOGIC;
+    SIGNAL SPVDPS5RESETACK              : STD_LOGIC;
+
+    -- PALETTE REGISTERS
+    SIGNAL PALETTEADDR_OUT              : STD_LOGIC_VECTOR(  3 DOWNTO 0 );
+    SIGNAL PALETTEDATARB_OUT            : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+    SIGNAL PALETTEDATAG_OUT             : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+
+    -- VDP COMMAND SIGNALS - CAN BE READ & SET BY CPU
+    SIGNAL VDPCMDCLR                    : STD_LOGIC_VECTOR(  7 DOWNTO 0 );  -- R44, S#7
+    -- VDP COMMAND SIGNALS - CAN BE READ BY CPU
+    SIGNAL VDPCMDCE                     : STD_LOGIC;                        -- S#2 (BIT 0)
+    SIGNAL VDPCMDBD                     : STD_LOGIC;                        -- S#2 (BIT 4)
+    SIGNAL VDPCMDTR                     : STD_LOGIC;                        -- S#2 (BIT 7)
+    SIGNAL VDPCMDSXTMP                  : STD_LOGIC_VECTOR( 10 DOWNTO 0 );  -- S#8, S#9
+
+    SIGNAL VDPCMDREGNUM                 : STD_LOGIC_VECTOR(  3 DOWNTO 0 );
+    SIGNAL VDPCMDREGDATA                : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+    SIGNAL VDPCMDREGWRACK               : STD_LOGIC;
+    SIGNAL VDPCMDTRCLRACK               : STD_LOGIC;
+    SIGNAL VDPCMDVRAMWRACK              : STD_LOGIC;
+    SIGNAL VDPCMDVRAMRDACK              : STD_LOGIC;
+    SIGNAL VDPCMDVRAMREADINGR           : STD_LOGIC;
+    SIGNAL VDPCMDVRAMREADINGA           : STD_LOGIC;
+    SIGNAL VDPCMDVRAMRDDATA             : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+    SIGNAL VDPCMDREGWRREQ               : STD_LOGIC;
+    SIGNAL VDPCMDTRCLRREQ               : STD_LOGIC;
+    SIGNAL VDPCMDVRAMWRREQ              : STD_LOGIC;
+    SIGNAL VDPCMDVRAMRDREQ              : STD_LOGIC;
+    SIGNAL VDPCMDVRAMACCESSADDR         : STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+    SIGNAL VDPCMDVRAMWRDATA             : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+
+    SIGNAL VDP_COMMAND_DRIVE            : STD_LOGIC;
+    SIGNAL VDP_COMMAND_ACTIVE           : STD_LOGIC;
+    SIGNAL CUR_VDP_COMMAND              : STD_LOGIC_VECTOR(  7 DOWNTO 4 );
+
+    -- VIDEO OUTPUT SIGNALS
+    SIGNAL IVIDEOR                      : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL IVIDEOG                      : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL IVIDEOB                      : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+
+    SIGNAL IVIDEOR_VDP                  : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL IVIDEOG_VDP                  : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL IVIDEOB_VDP                  : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL IVIDEOVS_N                   : STD_LOGIC;
+
+    SIGNAL IVIDEOR_NTSC_PAL             : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL IVIDEOG_NTSC_PAL             : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL IVIDEOB_NTSC_PAL             : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL IVIDEOHS_N_NTSC_PAL          : STD_LOGIC;
+    SIGNAL IVIDEOVS_N_NTSC_PAL          : STD_LOGIC;
+
+    SIGNAL IVIDEOR_VGA                  : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL IVIDEOG_VGA                  : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL IVIDEOB_VGA                  : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
+    SIGNAL IVIDEOHS_N_VGA               : STD_LOGIC;
+    SIGNAL IVIDEOVS_N_VGA               : STD_LOGIC;
+
+    SIGNAL IRAMADR                      : STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+    SIGNAL PRAMDAT                      : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+    SIGNAL XRAMSEL                      : STD_LOGIC;
+    SIGNAL PRAMDATPAIR                  : STD_LOGIC_VECTOR(  7 DOWNTO 0 );
+
+    SIGNAL HSYNC                        : STD_LOGIC;
+    SIGNAL ENAHSYNC                     : STD_LOGIC;
+    SIGNAL FF_BWINDOW_Y_DL              : STD_LOGIC;
+
+    CONSTANT VRAM_ACCESS_IDLE           : INTEGER := 0;
+    CONSTANT VRAM_ACCESS_DRAW           : INTEGER := 1;
+    CONSTANT VRAM_ACCESS_CPUW           : INTEGER := 2;
+    CONSTANT VRAM_ACCESS_CPUR           : INTEGER := 3;
+    CONSTANT VRAM_ACCESS_SPRT           : INTEGER := 4;
+    CONSTANT VRAM_ACCESS_VDPW           : INTEGER := 5;
+    CONSTANT VRAM_ACCESS_VDPR           : INTEGER := 6;
+    CONSTANT VRAM_ACCESS_VDPS           : INTEGER := 7;
+BEGIN
+
+    PRAMADR     <=  IRAMADR;
+    XRAMSEL     <=  IRAMADR(16);
+    PRAMDAT     <=  PRAMDBI(  7 DOWNTO 0 )  WHEN( XRAMSEL = '0' )ELSE
+                    PRAMDBI( 15 DOWNTO 8 );
+    PRAMDATPAIR <=  PRAMDBI(  7 DOWNTO 0 )  WHEN( XRAMSEL = '1' )ELSE
+                    PRAMDBI( 15 DOWNTO 8 );
+
+    ----------------------------------------------------------------
+    -- DISPLAY COMPONENTS
+    ----------------------------------------------------------------
+    DISPMODEVGA     <=  DISPRESO;   -- DISPLAY RESOLUTION (0=15KHZ, 1=31KHZ)
+
+--  VDPR9PALMODE    <=  REG_R9_PAL_MODE     WHEN( NTSC_PAL_TYPE = '1' AND LEGACY_VGA = '0' )ELSE
+    VDPR9PALMODE    <=  REG_R9_PAL_MODE     WHEN( NTSC_PAL_TYPE = '1' )ELSE
+                        FORCED_V_MODE;
+
+    IVIDEOR <=  (OTHERS => '0') WHEN( BWINDOW = '0' )ELSE
+                IVIDEOR_VDP;
+    IVIDEOG <=  (OTHERS => '0') WHEN( BWINDOW = '0' )ELSE
+                IVIDEOG_VDP;
+    IVIDEOB <=  (OTHERS => '0') WHEN( BWINDOW = '0' )ELSE
+                IVIDEOB_VDP;
+
+    U_VDP_NTSC_PAL: VDP_NTSC_PAL
+    PORT MAP(
+        CLK21M              => CLK21M,
+        RESET               => RESET,
+        PALMODE             => VDPR9PALMODE,
+        INTERLACEMODE       => REG_R9_INTERLACE_MODE,
+        VIDEORIN            => IVIDEOR,
+        VIDEOGIN            => IVIDEOG,
+        VIDEOBIN            => IVIDEOB,
+        VIDEOVSIN_N         => IVIDEOVS_N,
+        HCOUNTERIN          => H_CNT,
+        VCOUNTERIN          => V_CNT,
+        VIDEOROUT           => IVIDEOR_NTSC_PAL,
+        VIDEOGOUT           => IVIDEOG_NTSC_PAL,
+        VIDEOBOUT           => IVIDEOB_NTSC_PAL,
+        VIDEOHSOUT_N        => IVIDEOHS_N_NTSC_PAL,
+        VIDEOVSOUT_N        => IVIDEOVS_N_NTSC_PAL
+    );
+
+    U_VDP_VGA: VDP_VGA
+    PORT MAP(
+        CLK21M              => CLK21M,
+        RESET               => RESET,
+        VIDEORIN            => IVIDEOR,
+        VIDEOGIN            => IVIDEOG,
+        VIDEOBIN            => IVIDEOB,
+        VIDEOVSIN_N         => IVIDEOVS_N,
+        HCOUNTERIN          => H_CNT,
+        VCOUNTERIN          => V_CNT,
+        PALMODE             => VDPR9PALMODE,
+        INTERLACEMODE       => REG_R9_INTERLACE_MODE,
+        LEGACY_VGA          => LEGACY_VGA,
+        VIDEOROUT           => IVIDEOR_VGA,
+        VIDEOGOUT           => IVIDEOG_VGA,
+        VIDEOBOUT           => IVIDEOB_VGA,
+        VIDEOHSOUT_N        => IVIDEOHS_N_VGA,
+        VIDEOVSOUT_N        => IVIDEOVS_N_VGA,
+        RATIOMODE           => RATIOMODE
+    );
+
+    -- CHANGE DISPLAY MODE BY EXTERNAL INPUT PORT.
+    PVIDEOR     <=  IVIDEOR_NTSC_PAL WHEN( DISPMODEVGA = '0' )ELSE
+                    IVIDEOR_VGA;
+    PVIDEOG     <=  IVIDEOG_NTSC_PAL WHEN( DISPMODEVGA = '0' )ELSE
+                    IVIDEOG_VGA;
+    PVIDEOB     <=  IVIDEOB_NTSC_PAL WHEN( DISPMODEVGA = '0' )ELSE
+                    IVIDEOB_VGA;
+
+    -- H SYNC SIGNAL
+    PVIDEOHS_N  <=  IVIDEOHS_N_NTSC_PAL WHEN( DISPMODEVGA = '0' )ELSE
+                    IVIDEOHS_N_VGA;
+    -- V SYNC SIGNAL
+    PVIDEOVS_N  <=  IVIDEOVS_N_NTSC_PAL WHEN( DISPMODEVGA = '0' )ELSE
+                    IVIDEOVS_N_VGA;
+
+    -- THESE SIGNALS BELOW ARE OUTPUT DIRECTLY REGARDLESS OF DISPLAY MODE.
+    PVIDEOCS_N  <= NOT (IVIDEOHS_N_NTSC_PAL XOR IVIDEOVS_N_NTSC_PAL);
+
+    -----------------------------------------------------------------------------
+    -- INTERRUPT
+    -----------------------------------------------------------------------------
+
+    -- VSYNC INTERRUPT
+    VSYNCINT_N  <=  '1' WHEN( REG_R1_VSYNC_INT_EN = '0' )ELSE
+                    REQ_VSYNC_INT_N;
+
+    -- HSYNC INTERRUPT
+    HSYNCINT_N  <=  '1' WHEN( REG_R0_HSYNC_INT_EN = '0' OR ENAHSYNC = '0' )ELSE
+                    REQ_HSYNC_INT_N;
+
+    INT_N       <=  '0' WHEN( VSYNCINT_N = '0' OR HSYNCINT_N = '0' )ELSE
+                    'Z';
+--                  '1';    -- MIST board ( http://github.com/robinsonb5/OneChipMSX )
+
+    U_INTERRUPT: VDP_INTERRUPT
+    PORT MAP (
+        RESET                   => RESET                            ,
+        CLK21M                  => CLK21M                           ,
+
+        H_CNT                   => H_CNT                            ,
+        Y_CNT                   => PREDOTCOUNTER_Y(  7 DOWNTO 0 )   ,
+        ACTIVE_LINE             => ACTIVE_LINE                      ,
+        V_BLANKING_START        => V_BLANKING_START                 ,
+        CLR_VSYNC_INT           => CLR_VSYNC_INT                    ,
+        CLR_HSYNC_INT           => CLR_HSYNC_INT                    ,
+        REQ_VSYNC_INT_N         => REQ_VSYNC_INT_N                  ,
+        REQ_HSYNC_INT_N         => REQ_HSYNC_INT_N                  ,
+        REG_R19_HSYNC_INT_LINE  => REG_R19_HSYNC_INT_LINE
+    );
+
+    PROCESS( CLK21M )
+    BEGIN
+        IF( CLK21M'EVENT AND CLK21M = '1' )THEN
+            IF( PREDOTCOUNTER_X = 255 )THEN
+                ACTIVE_LINE <= '1';
+            ELSE
+                ACTIVE_LINE <= '0';
+            END IF;
+        END IF;
+    END PROCESS;
+
+    -----------------------------------------------------------------------------
+    -- SYNCHRONOUS SIGNAL GENERATOR
+    -----------------------------------------------------------------------------
+    U_SSG: VDP_SSG
+    PORT MAP(
+        RESET                   => RESET                    ,
+        CLK21M                  => CLK21M                   ,
+
+        H_CNT                   => H_CNT                    ,
+        V_CNT                   => V_CNT                    ,
+        DOTSTATE                => DOTSTATE                 ,
+        EIGHTDOTSTATE           => EIGHTDOTSTATE            ,
+        PREDOTCOUNTER_X         => PREDOTCOUNTER_X          ,
+        PREDOTCOUNTER_Y         => PREDOTCOUNTER_Y          ,
+        PREDOTCOUNTER_YP        => PREDOTCOUNTER_YP         ,
+        PREWINDOW_Y             => PREWINDOW_Y              ,
+        PREWINDOW_Y_SP          => PREWINDOW_Y_SP           ,
+        FIELD                   => FIELD                    ,
+        WINDOW_X                => WINDOW_X                 ,
+        PVIDEODHCLK             => PVIDEODHCLK              ,
+        PVIDEODLCLK             => PVIDEODLCLK              ,
+        IVIDEOVS_N              => IVIDEOVS_N               ,
+
+        HD                      => HD                       ,
+        VD                      => VD                       ,
+        HSYNC                   => HSYNC                    ,
+        ENAHSYNC                => ENAHSYNC                 ,
+        V_BLANKING_START        => V_BLANKING_START         ,
+
+        VDPR9PALMODE            => VDPR9PALMODE             ,
+        REG_R9_INTERLACE_MODE   => REG_R9_INTERLACE_MODE    ,
+        REG_R9_Y_DOTS           => REG_R9_Y_DOTS            ,
+        REG_R18_ADJ             => REG_R18_ADJ              ,
+        REG_R23_VSTART_LINE     => REG_R23_VSTART_LINE      ,
+        REG_R25_MSK             => REG_R25_MSK              ,
+        REG_R27_H_SCROLL        => REG_R27_H_SCROLL         ,
+        REG_R25_YJK             => REG_R25_YJK              ,
+        CENTERYJK_R25_N         => CENTERYJK_R25_N
+    );
+
+    -- GENERATE BWINDOW
+    PROCESS( RESET, CLK21M )
+    BEGIN
+        IF( RESET = '1' )THEN
+            BWINDOW_X <= '0';
+        ELSIF( CLK21M'EVENT AND CLK21M = '1' )THEN
+            IF( H_CNT = 200 ) THEN
+                BWINDOW_X <= '1';
+            ELSIF( H_CNT = CLOCKS_PER_LINE-1-1 )THEN
+                BWINDOW_X <= '0';
+            END IF;
+        END IF;
+    END PROCESS;
+
+    PROCESS( RESET, CLK21M )
+    BEGIN
+        IF( RESET = '1' )THEN
+            BWINDOW_Y <= '0';
+        ELSIF( CLK21M'EVENT AND CLK21M = '1' )THEN
+            IF( REG_R9_INTERLACE_MODE='0' ) THEN
+                -- NON-INTERLACE
+                -- 3+3+16 = 19
+                IF( (V_CNT = 20*2) OR
+                        ((V_CNT = 524+20*2) AND (VDPR9PALMODE = '0')) OR
+                        ((V_CNT = 626+20*2) AND (VDPR9PALMODE = '1')) ) THEN
+                    BWINDOW_Y <= '1';
+                ELSIF(  ((V_CNT = 524) AND (VDPR9PALMODE = '0')) OR
+                        ((V_CNT = 626) AND (VDPR9PALMODE = '1')) OR
+                         (V_CNT = 0) ) THEN
+                    BWINDOW_Y <= '0';
+                END IF;
+            ELSE
+                -- INTERLACE
+                IF( (V_CNT = 20*2) OR
+                        -- +1 SHOULD BE NEEDED.
+                        -- BECAUSE ODD FIELD'S START IS DELAYED HALF LINE.
+                        -- SO THE START POSITION OF DISPLAY TIME SHOULD BE
+                        -- DELAYED MORE HALF LINE.
+                        ((V_CNT = 525+20*2 + 1) AND (VDPR9PALMODE = '0')) OR
+                        ((V_CNT = 625+20*2 + 1) AND (VDPR9PALMODE = '1')) ) THEN
+                    BWINDOW_Y <= '1';
+                ELSIF(  ((V_CNT = 525) AND (VDPR9PALMODE = '0')) OR
+                        ((V_CNT = 625) AND (VDPR9PALMODE = '1')) OR
+                         (V_CNT = 0) ) THEN
+                    BWINDOW_Y <= '0';
+                END IF;
+            END IF;
+
+        END IF;
+    END PROCESS;
+
+    PROCESS( RESET, CLK21M )
+    BEGIN
+        IF( RESET = '1' )THEN
+            BWINDOW <= '0';
+        ELSIF( CLK21M'EVENT AND CLK21M = '1' )THEN
+            BWINDOW <= BWINDOW_X AND BWINDOW_Y;
+        END IF;
+    END PROCESS;
+
+    -- GENERATE PREWINDOW, WINDOW
+    WINDOW      <=  WINDOW_X    AND PREWINDOW_Y;
+    PREWINDOW   <=  PREWINDOW_X AND PREWINDOW_Y;
+
+    PROCESS( RESET, CLK21M )
+    BEGIN
+        IF( RESET = '1' )THEN
+            PREWINDOW_X <= '0';
+        ELSIF( CLK21M'EVENT AND CLK21M = '1' )THEN
+            IF( (H_CNT = ("00" & (OFFSET_X + LED_TV_X_NTSC - ((REG_R25_MSK AND (NOT CENTERYJK_R25_N)) & "00") + 4) & "10") AND REG_R25_YJK = '1' AND CENTERYJK_R25_N = '1' AND VDPR9PALMODE = '0') OR
+                (H_CNT = ("00" & (OFFSET_X + LED_TV_X_NTSC - ((REG_R25_MSK AND (NOT CENTERYJK_R25_N)) & "00")    ) & "10") AND (REG_R25_YJK = '0' OR CENTERYJK_R25_N = '0') AND VDPR9PALMODE = '0') OR
+                (H_CNT = ("00" & (OFFSET_X + LED_TV_X_PAL - ((REG_R25_MSK AND (NOT CENTERYJK_R25_N)) & "00") + 4) & "10") AND REG_R25_YJK = '1' AND CENTERYJK_R25_N = '1' AND VDPR9PALMODE = '1') OR
+                (H_CNT = ("00" & (OFFSET_X + LED_TV_X_PAL - ((REG_R25_MSK AND (NOT CENTERYJK_R25_N)) & "00")    ) & "10") AND (REG_R25_YJK = '0' OR CENTERYJK_R25_N = '0') AND VDPR9PALMODE = '1') )THEN
+                -- HOLD
+            ELSIF( H_CNT(1 DOWNTO 0) = "10") THEN
+                IF( PREDOTCOUNTER_X = "111111111" ) THEN
+                    -- JP: PREDOTCOUNTER_X が -1から0にカウントアップする時にWINDOWを1にする
+                    PREWINDOW_X <= '1';
+                ELSIF( PREDOTCOUNTER_X = "011111111" ) THEN
+                    PREWINDOW_X <= '0';
+                END IF;
+            END IF;
+        END IF;
+    END PROCESS;
+
+    ------------------------------------------------------------------------------
+    -- main process
+    ------------------------------------------------------------------------------
+    PROCESS( RESET, CLK21M )
+    BEGIN
+        IF( RESET = '1' )THEN
+            VDPVRAMRDDATA   <= (OTHERS => '0');
+            VDPVRAMREADINGA <= '0';
+        ELSIF( CLK21M'EVENT AND CLK21M = '1' )THEN
+            IF( DOTSTATE = "01" )THEN
+                IF( VDPVRAMREADINGR /= VDPVRAMREADINGA ) THEN
+                    VDPVRAMRDDATA   <= PRAMDAT;
+                    VDPVRAMREADINGA <= NOT VDPVRAMREADINGA;
+                END IF;
+            END IF;
+        END IF;
+    END PROCESS;
+
+    PROCESS( RESET, CLK21M )
+    BEGIN
+        IF( RESET = '1' )THEN
+            VDPCMDVRAMRDDATA    <= (OTHERS => '0');
+            VDPCMDVRAMRDACK     <= '0';
+            VDPCMDVRAMREADINGA  <= '0';
+        ELSIF( CLK21M'EVENT AND CLK21M = '1' )THEN
+            IF( DOTSTATE = "01" )THEN
+                IF( VDPCMDVRAMREADINGR /= VDPCMDVRAMREADINGA )THEN
+                    VDPCMDVRAMRDDATA    <= PRAMDAT;
+                    VDPCMDVRAMRDACK     <= NOT VDPCMDVRAMRDACK;
+                    VDPCMDVRAMREADINGA  <= NOT VDPCMDVRAMREADINGA;
+                END IF;
+            END IF;
+        END IF;
+    END PROCESS;
+
+    PROCESS( RESET, CLK21M )
+        VARIABLE VDPVRAMACCESSADDRV : STD_LOGIC_VECTOR( 16 DOWNTO 0 );
+        VARIABLE VRAMACCESSSWITCH   : INTEGER RANGE 0 TO 7;
+    BEGIN
+        IF (RESET = '1') THEN
+
+            IRAMADR <= (OTHERS => '1');
+            PRAMDBO <= (OTHERS => 'Z');
+            PRAMOE_N <= '1';
+            PRAMWE_N <= '1';
+
+            VDPVRAMREADINGR <= '0';
+
+            VDPVRAMRDACK <= '0';
+            VDPVRAMWRACK <= '0';
+            VDPVRAMADDRSETACK <= '0';
+            VDPVRAMACCESSADDR <= (OTHERS => '0');
+
+            VDPCMDVRAMWRACK <= '0';
+            VDPCMDVRAMREADINGR <= '0';
+            VDP_COMMAND_DRIVE <= '0';
+        ELSIF (CLK21M'EVENT AND CLK21M = '1') THEN
+
+            ------------------------------------------
+            -- MAIN STATE
+            ------------------------------------------
+            --
+            -- VRAM ACCESS ARBITER.
+            --
+            -- VRAMアクセスタイミングを、EIGHTDOTSTATE によって制御している
+            IF( DOTSTATE = "10" ) THEN
+                IF( (PREWINDOW = '1') AND (REG_R1_DISP_ON = '1') AND
+                    ((EIGHTDOTSTATE="000") OR (EIGHTDOTSTATE="001") OR (EIGHTDOTSTATE="010") OR
+                     (EIGHTDOTSTATE="011") OR (EIGHTDOTSTATE="100")) ) THEN
+                    --  EIGHTDOTSTATE が 0～4 で、表示中の場合
+                    VRAMACCESSSWITCH := VRAM_ACCESS_DRAW;
+                ELSIF( (PREWINDOW = '1') AND (REG_R1_DISP_ON = '1') AND
+                        (TXVRAMREADEN = '1')) THEN
+                    --  EIGHTDOTSTATE が 5～7 で、表示中で、テキストモードの場合
+                    VRAMACCESSSWITCH := VRAM_ACCESS_DRAW;
+                ELSIF( (PREWINDOW_X = '1') AND (PREWINDOW_Y_SP = '1') AND (SPVRAMACCESSING = '1') AND
+                        (EIGHTDOTSTATE="101") AND (VDPMODETEXT1 = '0') AND (VDPMODETEXT2 = '0') ) THEN
+                    -- FOR SPRITE Y-TESTING
+                    VRAMACCESSSWITCH := VRAM_ACCESS_SPRT;
+                ELSIF( (PREWINDOW_X = '0') AND (PREWINDOW_Y_SP = '1') AND (SPVRAMACCESSING = '1') AND
+                        (VDPMODETEXT1 = '0') AND (VDPMODETEXT2 = '0') AND
+                        ((EIGHTDOTSTATE="000") OR (EIGHTDOTSTATE="001") OR (EIGHTDOTSTATE="010") OR
+                        (EIGHTDOTSTATE="011") OR (EIGHTDOTSTATE="100") OR (EIGHTDOTSTATE="101")) ) THEN
+                    -- FOR SPRITE PREPAREING
+                    VRAMACCESSSWITCH := VRAM_ACCESS_SPRT;
+                ELSIF( VDPVRAMWRREQ /= VDPVRAMWRACK )THEN
+                    -- VRAM WRITE REQUEST BY CPU
+                    VRAMACCESSSWITCH := VRAM_ACCESS_CPUW;
+                ELSIF( VDPVRAMRDREQ /= VDPVRAMRDACK )THEN
+                    -- VRAM READ REQUEST BY CPU
+                    VRAMACCESSSWITCH := VRAM_ACCESS_CPUR;
+--              ELSIF( EIGHTDOTSTATE="111" )THEN
+                ELSE
+                    -- VDP COMMAND
+                    IF( VDP_COMMAND_ACTIVE = '1' )THEN
+                        IF( VDPCMDVRAMWRREQ /= VDPCMDVRAMWRACK )THEN
+                            VRAMACCESSSWITCH := VRAM_ACCESS_VDPW;
+                        ELSIF( VDPCMDVRAMRDREQ /= VDPCMDVRAMRDACK )THEN
+                            VRAMACCESSSWITCH := VRAM_ACCESS_VDPR;
+                        ELSE
+                            VRAMACCESSSWITCH := VRAM_ACCESS_VDPS;
+                        END IF;
+                    ELSE
+                        VRAMACCESSSWITCH := VRAM_ACCESS_VDPS;
+                    END IF;
+                END IF;
+            ELSE
+                VRAMACCESSSWITCH := VRAM_ACCESS_DRAW;
+            END IF;
+
+            IF( VRAMACCESSSWITCH = VRAM_ACCESS_VDPW OR
+                VRAMACCESSSWITCH = VRAM_ACCESS_VDPR OR
+                VRAMACCESSSWITCH = VRAM_ACCESS_VDPS )THEN
+                VDP_COMMAND_DRIVE <= '1';
+            ELSE
+                VDP_COMMAND_DRIVE <= '0';
+            END IF;
+
+            --
+            -- VRAM ACCESS ADDRESS SWITCH
+            --
+            IF( VRAMACCESSSWITCH = VRAM_ACCESS_CPUW )THEN
+                -- VRAM WRITE BY CPU
+                -- JP: GRAPHIC6,7ではVRAM上のアドレスと RAM上のアドレスの関係が
+                -- JP: 他の画面モードと異るので注意
+                IF( (VDPMODEGRAPHIC6 = '1') OR (VDPMODEGRAPHIC7 = '1') )THEN
+                    IRAMADR <= VDPVRAMACCESSADDR(0) & VDPVRAMACCESSADDR(16 DOWNTO 1);
+                ELSE
+                    IRAMADR <= VDPVRAMACCESSADDR;
+                END IF;
+                IF( (VDPMODETEXT1 = '1') OR (VDPMODEMULTI = '1') OR
+                    (VDPMODEGRAPHIC1 = '1') OR (VDPMODEGRAPHIC2 = '1') ) THEN
+                    VDPVRAMACCESSADDR(13 DOWNTO 0) <= VDPVRAMACCESSADDR(13 DOWNTO 0) + 1;
+                ELSE
+                    VDPVRAMACCESSADDR <= VDPVRAMACCESSADDR + 1;
+                END IF;
+                PRAMDBO <= VDPVRAMACCESSDATA;
+                PRAMOE_N <= '1';
+                PRAMWE_N <= '0';
+                VDPVRAMWRACK <= NOT VDPVRAMWRACK;
+            ELSIF( VRAMACCESSSWITCH = VRAM_ACCESS_CPUR ) THEN
+                -- VRAM READ BY CPU
+                IF( VDPVRAMADDRSETREQ /= VDPVRAMADDRSETACK ) THEN
+                    VDPVRAMACCESSADDRV := VDPVRAMACCESSADDRTMP;
+                    -- CLEAR VRAM ADDRESS SET REQUEST SIGNAL
+                    VDPVRAMADDRSETACK <= NOT VDPVRAMADDRSETACK;
+                ELSE
+                    VDPVRAMACCESSADDRV := VDPVRAMACCESSADDR;
+                END IF;
+
+                -- JP: GRAPHIC6,7ではVRAM上のアドレスと RAM上のアドレスの関係が
+                -- JP: 他の画面モードと異るので注意
+                IF( (VDPMODEGRAPHIC6 = '1') OR (VDPMODEGRAPHIC7 = '1') )THEN
+                    IRAMADR <= VDPVRAMACCESSADDRV(0) & VDPVRAMACCESSADDRV(16 DOWNTO 1);
+                ELSE
+                    IRAMADR <= VDPVRAMACCESSADDRV;
+                END IF;
+                IF( (VDPMODETEXT1 = '1') OR (VDPMODEMULTI = '1') OR
+                    (VDPMODEGRAPHIC1 = '1') OR (VDPMODEGRAPHIC2 = '1') )THEN
+                    VDPVRAMACCESSADDR(13 DOWNTO 0) <= VDPVRAMACCESSADDRV(13 DOWNTO 0) + 1;
+                ELSE
+                    VDPVRAMACCESSADDR <= VDPVRAMACCESSADDRV + 1;
+                END IF;
+                PRAMDBO <= (OTHERS => 'Z');
+                PRAMOE_N <= '0';
+                PRAMWE_N <= '1';
+                VDPVRAMRDACK <= NOT VDPVRAMRDACK;
+                VDPVRAMREADINGR <= NOT VDPVRAMREADINGA;
+            ELSIF( VRAMACCESSSWITCH = VRAM_ACCESS_VDPW )THEN
+                -- VRAM WRITE BY VDP COMMAND
+                -- VDP COMMAND WRITE VRAM.
+                -- JP: GRAPHIC6,7ではアドレスと RAM上の位置が他の画面モードと
+                -- JP: 異るので注意
+                IF( (VDPMODEGRAPHIC6 = '1') OR (VDPMODEGRAPHIC7 = '1') )THEN
+                    IRAMADR <= VDPCMDVRAMACCESSADDR(0) & VDPCMDVRAMACCESSADDR(16 DOWNTO 1);
+                ELSE
+                    IRAMADR <= VDPCMDVRAMACCESSADDR;
+                END IF;
+                PRAMDBO <= VDPCMDVRAMWRDATA;
+                PRAMOE_N <= '1';
+                PRAMWE_N <= '0';
+                VDPCMDVRAMWRACK <= NOT VDPCMDVRAMWRACK;
+            ELSIF( VRAMACCESSSWITCH = VRAM_ACCESS_VDPR )THEN
+                -- VRAM READ BY VDP COMMAND
+                -- JP: GRAPHIC6,7ではアドレスと RAM上の位置が他の画面モードと
+                -- JP: 異るので注意
+                IF( (VDPMODEGRAPHIC6 = '1') OR (VDPMODEGRAPHIC7 = '1') )THEN
+                    IRAMADR <= VDPCMDVRAMACCESSADDR(0) & VDPCMDVRAMACCESSADDR(16 DOWNTO 1);
+                ELSE
+                    IRAMADR <= VDPCMDVRAMACCESSADDR;
+                END IF;
+                PRAMDBO <= (OTHERS => 'Z');
+                PRAMOE_N <= '0';
+                PRAMWE_N <= '1';
+                VDPCMDVRAMREADINGR <= NOT VDPCMDVRAMREADINGA;
+            ELSIF( VRAMACCESSSWITCH = VRAM_ACCESS_SPRT )THEN
+                -- VRAM READ BY SPRITE MODULE
+                IRAMADR <= PRAMADRSPRITE;
+                PRAMOE_N <= '0';
+                PRAMWE_N <= '1';
+                PRAMDBO <= (OTHERS => 'Z');
+            ELSE
+                -- VRAM_ACCESS_DRAW
+                -- VRAM READ FOR SCREEN IMAGE BUILDING
+                CASE DOTSTATE IS
+                    WHEN "10" =>
+                        PRAMDBO <= (OTHERS => 'Z');
+                        PRAMOE_N <= '0';
+                        PRAMWE_N <= '1';
+                        IF( (VDPMODETEXT1 = '1') OR (VDPMODETEXT2 = '1') )THEN
+                            IRAMADR <= PRAMADRT12;
+                        ELSIF(  (VDPMODEGRAPHIC1 = '1') OR (VDPMODEGRAPHIC2 = '1') OR
+                                (VDPMODEGRAPHIC3 = '1') OR (VDPMODEMULTI = '1') )THEN
+                            IRAMADR <= PRAMADRG123M;
+                        ELSIF(  (VDPMODEGRAPHIC4 = '1') OR (VDPMODEGRAPHIC5 = '1') OR
+                                (VDPMODEGRAPHIC6 = '1') OR (VDPMODEGRAPHIC7 = '1') )THEN
+                            IRAMADR <= PRAMADRG4567;
+                        END IF;
+                    WHEN "01" =>
+                        PRAMDBO <= (OTHERS => 'Z' );
+                        PRAMOE_N <= '0';
+                        PRAMWE_N <= '1';
+                        IF( (VDPMODEGRAPHIC6 = '1') OR (VDPMODEGRAPHIC7 = '1') )THEN
+                            IRAMADR <= PRAMADRG4567;
+                        END IF;
+                    WHEN OTHERS =>
+                        NULL;
+                END CASE;
+
+                IF( (DOTSTATE = "11") AND (VDPVRAMADDRSETREQ /= VDPVRAMADDRSETACK) )THEN
+                    VDPVRAMACCESSADDR <= VDPVRAMACCESSADDRTMP;
+                    VDPVRAMADDRSETACK <= NOT VDPVRAMADDRSETACK;
+                END IF;
+            END IF;
+        END IF;
+    END PROCESS;
+
+    -----------------------------------------------------------------------
+    -- COLOR DECODING
+    -------------------------------------------------------------------------
+    U_VDP_COLORDEC: VDP_COLORDEC
+    PORT MAP(
+        RESET               => RESET                ,
+        CLK21M              => CLK21M               ,
+
+        DOTSTATE            => DOTSTATE             ,
+
+        PPALETTEADDR_OUT    => PALETTEADDR_OUT      ,
+        PALETTEDATARB_OUT   => PALETTEDATARB_OUT    ,
+        PALETTEDATAG_OUT    => PALETTEDATAG_OUT     ,
+
+        VDPMODETEXT1        => VDPMODETEXT1         ,
+        VDPMODETEXT2        => VDPMODETEXT2         ,
+        VDPMODEMULTI        => VDPMODEMULTI         ,
+        VDPMODEGRAPHIC1     => VDPMODEGRAPHIC1      ,
+        VDPMODEGRAPHIC2     => VDPMODEGRAPHIC2      ,
+        VDPMODEGRAPHIC3     => VDPMODEGRAPHIC3      ,
+        VDPMODEGRAPHIC4     => VDPMODEGRAPHIC4      ,
+        VDPMODEGRAPHIC5     => VDPMODEGRAPHIC5      ,
+        VDPMODEGRAPHIC6     => VDPMODEGRAPHIC6      ,
+        VDPMODEGRAPHIC7     => VDPMODEGRAPHIC7      ,
+
+        WINDOW              => WINDOW               ,
+        SPRITECOLOROUT      => SPRITECOLOROUT       ,
+        COLORCODET12        => COLORCODET12         ,
+        COLORCODEG123M      => COLORCODEG123M       ,
+        COLORCODEG4567      => COLORCODEG4567       ,
+        COLORCODESPRITE     => COLORCODESPRITE      ,
+        P_YJK_R             => YJK_R                ,
+        P_YJK_G             => YJK_G                ,
+        P_YJK_B             => YJK_B                ,
+        P_YJK_EN            => YJK_EN               ,
+
+        PVIDEOR_VDP         => IVIDEOR_VDP          ,
+        PVIDEOG_VDP         => IVIDEOG_VDP          ,
+        PVIDEOB_VDP         => IVIDEOB_VDP          ,
+
+        REG_R1_DISP_ON      => REG_R1_DISP_ON       ,
+        REG_R7_FRAME_COL    => REG_R7_FRAME_COL     ,
+        REG_R8_COL0_ON      => REG_R8_COL0_ON       ,
+        REG_R25_YJK         => REG_R25_YJK
+    );
+
+    -----------------------------------------------------------------------------
+    -- MAKE COLOR CODE
+    -----------------------------------------------------------------------------
+    U_VDP_TEXT12: VDP_TEXT12
+    PORT MAP(
+        CLK21M                      => CLK21M,
+        RESET                       => RESET,
+        DOTSTATE                    => DOTSTATE,
+        DOTCOUNTERX                 => PREDOTCOUNTER_X,
+        DOTCOUNTERY                 => PREDOTCOUNTER_YP,
+        VDPMODETEXT1                => VDPMODETEXT1,
+        VDPMODETEXT2                => VDPMODETEXT2,
+        REG_R7_FRAME_COL            => REG_R7_FRAME_COL,
+        REG_R12_BLINK_MODE          => REG_R12_BLINK_MODE,
+        REG_R13_BLINK_PERIOD        => REG_R13_BLINK_PERIOD,
+        REG_R2_PT_NAM_ADDR          => REG_R2_PT_NAM_ADDR,
+        REG_R4_PT_GEN_ADDR          => REG_R4_PT_GEN_ADDR,
+        REG_R10R3_COL_ADDR          => REG_R10R3_COL_ADDR,
+        PRAMDAT                     => PRAMDAT,
+        PRAMADR                     => PRAMADRT12,
+        TXVRAMREADEN                => TXVRAMREADEN,
+        PCOLORCODE                  => COLORCODET12
+    );
+
+    U_VDP_GRAPHIC123M: VDP_GRAPHIC123M
+    PORT MAP(
+        CLK21M                      => CLK21M,
+        RESET                       => RESET,
+        DOTSTATE                    => DOTSTATE,
+        EIGHTDOTSTATE               => EIGHTDOTSTATE,
+        DOTCOUNTERX                 => PREDOTCOUNTER_X,
+        DOTCOUNTERY                 => PREDOTCOUNTER_Y,
+        VDPMODEMULTI                => VDPMODEMULTI,
+        VDPMODEGRAPHIC1             => VDPMODEGRAPHIC1,
+        VDPMODEGRAPHIC2             => VDPMODEGRAPHIC2,
+        VDPMODEGRAPHIC3             => VDPMODEGRAPHIC3,
+        REG_R2_PT_NAM_ADDR          => REG_R2_PT_NAM_ADDR,
+        REG_R4_PT_GEN_ADDR          => REG_R4_PT_GEN_ADDR,
+        REG_R10R3_COL_ADDR          => REG_R10R3_COL_ADDR,
+        REG_R26_H_SCROLL            => REG_R26_H_SCROLL,
+        REG_R27_H_SCROLL            => REG_R27_H_SCROLL,
+        PRAMDAT                     => PRAMDAT,
+        PRAMADR                     => PRAMADRG123M,
+        PCOLORCODE                  => COLORCODEG123M
+    );
+
+    U_VDP_GRAPHIC4567: VDP_GRAPHIC4567
+    PORT MAP(
+        CLK21M                      => CLK21M,
+        RESET                       => RESET,
+        DOTSTATE                    => DOTSTATE,
+        EIGHTDOTSTATE               => EIGHTDOTSTATE,
+        DOTCOUNTERX                 => PREDOTCOUNTER_X,
+        DOTCOUNTERY                 => PREDOTCOUNTER_Y,
+        VDPMODEGRAPHIC4             => VDPMODEGRAPHIC4,
+        VDPMODEGRAPHIC5             => VDPMODEGRAPHIC5,
+        VDPMODEGRAPHIC6             => VDPMODEGRAPHIC6,
+        VDPMODEGRAPHIC7             => VDPMODEGRAPHIC7,
+        REG_R2_PT_NAM_ADDR          => REG_R2_PT_NAM_ADDR,
+        REG_R26_H_SCROLL            => REG_R26_H_SCROLL,
+        REG_R27_H_SCROLL            => REG_R27_H_SCROLL,
+        REG_R25_YAE                 => REG_R25_YAE,
+        REG_R25_YJK                 => REG_R25_YJK,
+        REG_R25_SP2                 => REG_R25_SP2,
+        PRAMDAT                     => PRAMDAT,
+        PRAMDATPAIR                 => PRAMDATPAIR,
+        PRAMADR                     => PRAMADRG4567,
+        PCOLORCODE                  => COLORCODEG4567,
+        P_YJK_R                     => YJK_R,
+        P_YJK_G                     => YJK_G,
+        P_YJK_B                     => YJK_B,
+        P_YJK_EN                    => YJK_EN
+    );
+
+    -----------------------------------------------------------------------------
+    -- SPRITE MODULE
+    -----------------------------------------------------------------------------
+    U_SPRITE: VDP_SPRITE
+    PORT MAP(
+        CLK21M                      => CLK21M,
+        RESET                       => RESET,
+        DOTSTATE                    => DOTSTATE,
+        EIGHTDOTSTATE               => EIGHTDOTSTATE,
+        DOTCOUNTERX                 => PREDOTCOUNTER_X,
+        DOTCOUNTERYP                => PREDOTCOUNTER_YP,
+        BWINDOW_Y                   => BWINDOW_Y,
+        PVDPS0SPCOLLISIONINCIDENCE  => VDPS0SPCOLLISIONINCIDENCE,
+        PVDPS0SPOVERMAPPED          => VDPS0SPOVERMAPPED,
+        PVDPS0SPOVERMAPPEDNUM       => VDPS0SPOVERMAPPEDNUM,
+        PVDPS3S4SPCOLLISIONX        => VDPS3S4SPCOLLISIONX,
+        PVDPS5S6SPCOLLISIONY        => VDPS5S6SPCOLLISIONY,
+        PVDPS0RESETREQ              => SPVDPS0RESETREQ,
+        PVDPS0RESETACK              => SPVDPS0RESETACK,
+        PVDPS5RESETREQ              => SPVDPS5RESETREQ,
+        PVDPS5RESETACK              => SPVDPS5RESETACK,
+        REG_R1_SP_SIZE              => REG_R1_SP_SIZE,
+        REG_R1_SP_ZOOM              => REG_R1_SP_ZOOM,
+        REG_R11R5_SP_ATR_ADDR       => REG_R11R5_SP_ATR_ADDR,
+        REG_R6_SP_GEN_ADDR          => REG_R6_SP_GEN_ADDR,
+        REG_R8_COL0_ON              => REG_R8_COL0_ON,
+        REG_R8_SP_OFF               => REG_R8_SP_OFF,
+        REG_R23_VSTART_LINE         => REG_R23_VSTART_LINE,
+        REG_R27_H_SCROLL            => REG_R27_H_SCROLL,
+        SPMODE2                     => SPMODE2,
+        VRAMINTERLEAVEMODE          => VDPMODEISVRAMINTERLEAVE,
+        SPVRAMACCESSING             => SPVRAMACCESSING,
+        PRAMDAT                     => PRAMDAT,
+        PRAMADR                     => PRAMADRSPRITE,
+        SPCOLOROUT                  => SPRITECOLOROUT,
+        SPCOLORCODE                 => COLORCODESPRITE
+    );
+
+    -----------------------------------------------------------------------------
+    -- VDP REGISTER ACCESS
+    -----------------------------------------------------------------------------
+    U_VDP_REGISTER: VDP_REGISTER
+    PORT MAP(
+        RESET                       => RESET                        ,
+        CLK21M                      => CLK21M                       ,
+
+        REQ                         => REQ                          ,
+        ACK                         => ACK                          ,
+        WRT                         => WRT                          ,
+        ADR                         => ADR                          ,
+        DBI                         => DBI                          ,
+        DBO                         => DBO                          ,
+
+        DOTSTATE                    => DOTSTATE                     ,
+
+        VDPCMDTRCLRACK              => VDPCMDTRCLRACK               ,
+        VDPCMDREGWRACK              => VDPCMDREGWRACK               ,
+        HSYNC                       => HSYNC                        ,
+
+        VDPS0SPCOLLISIONINCIDENCE   => VDPS0SPCOLLISIONINCIDENCE    ,
+        VDPS0SPOVERMAPPED           => VDPS0SPOVERMAPPED            ,
+        VDPS0SPOVERMAPPEDNUM        => VDPS0SPOVERMAPPEDNUM         ,
+        SPVDPS0RESETREQ             => SPVDPS0RESETREQ              ,
+        SPVDPS0RESETACK             => SPVDPS0RESETACK              ,
+        SPVDPS5RESETREQ             => SPVDPS5RESETREQ              ,
+        SPVDPS5RESETACK             => SPVDPS5RESETACK              ,
+
+        VDPCMDTR                    => VDPCMDTR                     ,
+        VD                          => VD                           ,
+        HD                          => HD                           ,
+        VDPCMDBD                    => VDPCMDBD                     ,
+        FIELD                       => FIELD                        ,
+        VDPCMDCE                    => VDPCMDCE                     ,
+        VDPS3S4SPCOLLISIONX         => VDPS3S4SPCOLLISIONX          ,
+        VDPS5S6SPCOLLISIONY         => VDPS5S6SPCOLLISIONY          ,
+        VDPCMDCLR                   => VDPCMDCLR                    ,
+        VDPCMDSXTMP                 => VDPCMDSXTMP                  ,
+
+        VDPVRAMACCESSDATA           => VDPVRAMACCESSDATA            ,
+        VDPVRAMACCESSADDRTMP        => VDPVRAMACCESSADDRTMP         ,
+        VDPVRAMADDRSETREQ           => VDPVRAMADDRSETREQ            ,
+        VDPVRAMADDRSETACK           => VDPVRAMADDRSETACK            ,
+        VDPVRAMWRREQ                => VDPVRAMWRREQ                 ,
+        VDPVRAMWRACK                => VDPVRAMWRACK                 ,
+        VDPVRAMRDDATA               => VDPVRAMRDDATA                ,
+        VDPVRAMRDREQ                => VDPVRAMRDREQ                 ,
+        VDPVRAMRDACK                => VDPVRAMRDACK                 ,
+
+        VDPCMDREGNUM                => VDPCMDREGNUM                 ,
+        VDPCMDREGDATA               => VDPCMDREGDATA                ,
+        VDPCMDREGWRREQ              => VDPCMDREGWRREQ               ,
+        VDPCMDTRCLRREQ              => VDPCMDTRCLRREQ               ,
+
+        PALETTEADDR_OUT             => PALETTEADDR_OUT              ,
+        PALETTEDATARB_OUT           => PALETTEDATARB_OUT            ,
+        PALETTEDATAG_OUT            => PALETTEDATAG_OUT             ,
+
+        CLR_VSYNC_INT               => CLR_VSYNC_INT                ,
+        CLR_HSYNC_INT               => CLR_HSYNC_INT                ,
+        REQ_VSYNC_INT_N             => REQ_VSYNC_INT_N              ,
+        REQ_HSYNC_INT_N             => REQ_HSYNC_INT_N              ,
+
+        REG_R0_HSYNC_INT_EN         => REG_R0_HSYNC_INT_EN          ,
+        REG_R1_SP_SIZE              => REG_R1_SP_SIZE               ,
+        REG_R1_SP_ZOOM              => REG_R1_SP_ZOOM               ,
+        REG_R1_VSYNC_INT_EN         => REG_R1_VSYNC_INT_EN          ,
+        REG_R1_DISP_ON              => REG_R1_DISP_ON               ,
+        REG_R2_PT_NAM_ADDR          => REG_R2_PT_NAM_ADDR           ,
+        REG_R4_PT_GEN_ADDR          => REG_R4_PT_GEN_ADDR           ,
+        REG_R10R3_COL_ADDR          => REG_R10R3_COL_ADDR           ,
+        REG_R11R5_SP_ATR_ADDR       => REG_R11R5_SP_ATR_ADDR        ,
+        REG_R6_SP_GEN_ADDR          => REG_R6_SP_GEN_ADDR           ,
+        REG_R7_FRAME_COL            => REG_R7_FRAME_COL             ,
+        REG_R8_SP_OFF               => REG_R8_SP_OFF                ,
+        REG_R8_COL0_ON              => REG_R8_COL0_ON               ,
+        REG_R9_PAL_MODE             => REG_R9_PAL_MODE              ,
+        REG_R9_INTERLACE_MODE       => REG_R9_INTERLACE_MODE        ,
+        REG_R9_Y_DOTS               => REG_R9_Y_DOTS                ,
+        REG_R12_BLINK_MODE          => REG_R12_BLINK_MODE           ,
+        REG_R13_BLINK_PERIOD        => REG_R13_BLINK_PERIOD         ,
+        REG_R18_ADJ                 => REG_R18_ADJ                  ,
+        REG_R19_HSYNC_INT_LINE      => REG_R19_HSYNC_INT_LINE       ,
+        REG_R23_VSTART_LINE         => REG_R23_VSTART_LINE          ,
+        REG_R25_CMD                 => REG_R25_CMD                  ,
+        REG_R25_YAE                 => REG_R25_YAE                  ,
+        REG_R25_YJK                 => REG_R25_YJK                  ,
+        REG_R25_MSK                 => REG_R25_MSK                  ,
+        REG_R25_SP2                 => REG_R25_SP2                  ,
+        REG_R26_H_SCROLL            => REG_R26_H_SCROLL             ,
+        REG_R27_H_SCROLL            => REG_R27_H_SCROLL             ,
+
+        VDPMODETEXT1                => VDPMODETEXT1                 ,
+        VDPMODETEXT2                => VDPMODETEXT2                 ,
+        VDPMODEMULTI                => VDPMODEMULTI                 ,
+        VDPMODEGRAPHIC1             => VDPMODEGRAPHIC1              ,
+        VDPMODEGRAPHIC2             => VDPMODEGRAPHIC2              ,
+        VDPMODEGRAPHIC3             => VDPMODEGRAPHIC3              ,
+        VDPMODEGRAPHIC4             => VDPMODEGRAPHIC4              ,
+        VDPMODEGRAPHIC5             => VDPMODEGRAPHIC5              ,
+        VDPMODEGRAPHIC6             => VDPMODEGRAPHIC6              ,
+        VDPMODEGRAPHIC7             => VDPMODEGRAPHIC7              ,
+        VDPMODEISHIGHRES            => VDPMODEISHIGHRES             ,
+        SPMODE2                     => SPMODE2                      ,
+        VDPMODEISVRAMINTERLEAVE     => VDPMODEISVRAMINTERLEAVE      ,
+
+        FORCED_V_MODE               => FORCED_V_MODE
+    );
+
+    -- ★
+--  DEBUG_OUTPUT <= REG_R19_HSYNC_INT_LINE & REG_R23_VSTART_LINE;
+
+    -----------------------------------------------------------------------------
+    -- VDP COMMAND
+    -----------------------------------------------------------------------------
+    U_VDP_COMMAND: VDP_COMMAND
+    PORT MAP(
+        RESET               => RESET                ,
+        CLK21M              => CLK21M               ,
+        VDPMODEGRAPHIC4     => VDPMODEGRAPHIC4      ,
+        VDPMODEGRAPHIC5     => VDPMODEGRAPHIC5      ,
+        VDPMODEGRAPHIC6     => VDPMODEGRAPHIC6      ,
+        VDPMODEGRAPHIC7     => VDPMODEGRAPHIC7      ,
+        VDPMODEISHIGHRES    => VDPMODEISHIGHRES     ,
+        VRAMWRACK           => VDPCMDVRAMWRACK      ,
+        VRAMRDACK           => VDPCMDVRAMRDACK      ,
+        VRAMREADINGR        => VDPCMDVRAMREADINGR   ,
+        VRAMREADINGA        => VDPCMDVRAMREADINGA   ,
+        VRAMRDDATA          => VDPCMDVRAMRDDATA     ,
+        REGWRREQ            => VDPCMDREGWRREQ       ,
+        TRCLRREQ            => VDPCMDTRCLRREQ       ,
+        REGNUM              => VDPCMDREGNUM         ,
+        REGDATA             => VDPCMDREGDATA        ,
+        PREGWRACK           => VDPCMDREGWRACK       ,
+        PTRCLRACK           => VDPCMDTRCLRACK       ,
+        PVRAMWRREQ          => VDPCMDVRAMWRREQ      ,
+        PVRAMRDREQ          => VDPCMDVRAMRDREQ      ,
+        PVRAMACCESSADDR     => VDPCMDVRAMACCESSADDR ,
+        PVRAMWRDATA         => VDPCMDVRAMWRDATA     ,
+        PCLR                => VDPCMDCLR            ,
+        PCE                 => VDPCMDCE             ,
+        PBD                 => VDPCMDBD             ,
+        PTR                 => VDPCMDTR             ,
+        PSXTMP              => VDPCMDSXTMP          ,
+        CUR_VDP_COMMAND     => CUR_VDP_COMMAND      ,
+        REG_R25_CMD         => REG_R25_CMD
+    );
+
+    U_VDP_WAIT_CONTROL: VDP_WAIT_CONTROL
+    PORT MAP (
+        RESET               => RESET                ,
+        CLK21M              => CLK21M               ,
+
+        VDP_COMMAND         => CUR_VDP_COMMAND      ,
+
+        VDPR9PALMODE        => VDPR9PALMODE         ,
+        REG_R1_DISP_ON      => REG_R1_DISP_ON       ,
+        REG_R8_SP_OFF       => REG_R8_SP_OFF        ,
+        REG_R9_Y_DOTS       => REG_R9_Y_DOTS        ,
+
+        VDPSPEEDMODE        => VDPSPEEDMODE         ,
+        DRIVE               => VDP_COMMAND_DRIVE    ,
+
+        ACTIVE              => VDP_COMMAND_ACTIVE
+    );
+
+END RTL;
 
