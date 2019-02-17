@@ -1,0 +1,21 @@
+syntax: regexp
+^.git\/
+^pld\/projects\/1chipmsx\/db\/
+^pld\/projects\/1chipmsx\/incremental_db\/
+^pld\/projects\/1chipmsx\/.*\.done$
+^pld\/projects\/1chipmsx\/.*\.map$
+^pld\/projects\/1chipmsx\/.*\.pin$
+^pld\/projects\/1chipmsx\/.*\.pof$
+^pld\/projects\/1chipmsx\/.*\.rpt$
+^pld\/projects\/1chipmsx\/.*\.sof$
+^pld\/projects\/1chipmsx\/.*\.summary$
+^pld\/projects\/de0cv\/db\/
+^pld\/projects\/de0cv\/incremental_db\/
+^pld\/projects\/de0cv\/output_files\/
+^pld\/projects\/de0cv\/.*\.done$
+^pld\/projects\/de0cv\/.*\.map$
+^pld\/projects\/de0cv\/.*\.pin$
+^pld\/projects\/de0cv\/.*\.pof$
+^pld\/projects\/de0cv\/.*\.rpt$
+^pld\/projects\/de0cv\/.*\.sof$
+^pld\/projects\/de0cv\/.*\.summary$
