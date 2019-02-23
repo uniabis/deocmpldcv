@@ -292,7 +292,8 @@ including modification of [OCM-PLD](http://gnogni.altervista.org/).
 --    notice, this list of conditions and the following disclaimer in the
 --    documentation and/or other materials provided with the distribution.
 -- 3. Redistributions may not be sold, nor may they be used in a commercial
---    product or activity without specific prior written permission.
+--    product or activity without specific prior written permission of other
+--    authors.
 --
 -- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 -- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
