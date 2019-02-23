@@ -50,8 +50,8 @@ architecture rtl of iplrom is
     constant ipl_data : rom_type := (
         X"F3",X"01",X"FC",X"02",X"11",X"00",X"FC",X"63",X"6B",X"ED",X"B0",X"21",X"4C",X"FD",X"01",X"99",
         X"02",X"ED",X"B3",X"01",X"9A",X"20",X"ED",X"BB",X"C3",X"1B",X"FC",X"31",X"FF",X"FF",X"3E",X"D4",
-        X"D3",X"40",X"3E",X"80",X"32",X"00",X"70",X"2A",X"00",X"80",X"11",X"41",X"42",X"ED",X"52",X"CA",
-        X"1D",X"FD",X"3E",X"40",X"32",X"00",X"60",X"21",X"00",X"C0",X"04",X"4D",X"55",X"5D",
+        X"D3",X"40",X"3E",X"80",X"32",X"00",X"70",X"2A",X"00",X"80",X"11",X"41",X"42",X"ED",X"52",X"00",
+        X"00",X"00",X"3E",X"40",X"32",X"00",X"60",X"21",X"00",X"C0",X"04",X"4D",X"55",X"5D",
 
 --      X"C3",X"86",X"FC",X"38",X"43",      -- loading BIOS from EPCS only
         X"CD",X"14",X"FE",X"38",X"43",      -- loading BIOS from SD-CARD or EPCS (default)
