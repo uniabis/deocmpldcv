@@ -50,7 +50,7 @@ entity emsx_top_de0cv is
         RESET_N         : in    std_logic;
 
         -- MSX cartridge slot ports
-        pSltRst_n       : out   std_logic;                          -- pCpuRst_n returns here
+        pSltRst_n       : out   std_logic;
         pSltSltsl_n     : inout std_logic;
         pSltSlts2_n     : inout std_logic;
         pSltIorq_n      : inout std_logic;
@@ -111,6 +111,7 @@ entity emsx_top_de0cv is
         pSW             : in    std_logic_vector(  3 downto 0);     -- 0=press, 1=unpress
         pDip            : in    std_logic_vector(  7 downto 0);     -- 0=On, 1=Off (default on shipment)
         pLed            : out   std_logic_vector(  7 downto 0);     -- 0=Off, 1=On (green)
+        pLed8           : out   std_logic;                          -- 0=Off, 1=On (red)
         pLedPwr         : out   std_logic;                          -- 0=Off, 1=On (red)
 
         -- Video, Audio/CMT ports
@@ -617,7 +618,7 @@ architecture RTL of emsx_top_de0cv is
     signal  swioCmt         : std_logic;
     signal  LightsMode      : std_logic;
     signal  Red_sta         : std_logic;
-    signal  LastRst_sta     : std_logic;                                    -- here to reduce LEs
+    signal  LastRst_sta     : std_logic := '0';                             -- here to reduce LEs
     signal  RstReq_sta      : std_logic;                                    -- here to reduce LEs
     signal  Blink_ena       : std_logic;
     signal  pseudoStereo    : std_logic;
@@ -631,11 +632,11 @@ architecture RTL of emsx_top_de0cv is
     signal  LevCtrl         : std_logic_vector(  2 downto 0 );
     signal  GreenLvEna      : std_logic;
     signal  swioRESET_n     : std_logic;
-    signal  warmRESET       : std_logic;
+    signal  warmRESET       : std_logic := '0';
     signal  WarmMSXlogo     : std_logic;                                    -- here to reduce LEs
     signal  ZemmixNeo       : std_logic;
     signal  JIS2_ena        : std_logic;
-    signal  portF4_mode     : std_logic;
+    signal  portF4_mode     : std_logic := '0';
     signal  RatioMode       : std_logic_vector(  2 downto 0 );
     signal  centerYJK_R25_n : std_logic;
     signal  legacy_sel      : std_logic;
@@ -657,6 +658,8 @@ architecture RTL of emsx_top_de0cv is
     alias   MmcMode         : std_logic is MegaSD_ack;                      -- '0': disable SD/MMC  '1': enable SD/MMC
 
     -- Clock, Reset control signals
+    signal  iCpuRst_n       : std_logic;
+    signal  iRESET_N        : std_logic_vector(  2 downto 0 ) := (others => '0');
     signal  clk21m          : std_logic;
     signal  memclk          : std_logic;
     signal  cpuclk          : std_logic;
@@ -691,7 +694,6 @@ architecture RTL of emsx_top_de0cv is
     signal  dlydbi          : std_logic_vector(  7 downto 0 );
     signal  BusReq_n        : std_logic;
     signal  CpuM1_n         : std_logic;
-    signal  CpuRst_n        : std_logic;
     signal  CpuRfsh_n       : std_logic;
 
     -- Internal bus signals (common)
@@ -734,7 +736,7 @@ architecture RTL of emsx_top_de0cv is
 
     -- IPL-ROM signals
     signal  RomDbi          : std_logic_vector(  7 downto 0 );
-    signal  ff_ldbios_n     : std_logic;
+    signal  ff_ldbios_n     : std_logic := '0';
 
     -- ESE-RAM signals
     signal  ErmReq          : std_logic;
@@ -1171,7 +1173,18 @@ begin
 
     -- hard reset timer
 
-    iSltRst_n <= RESET_N and ipSW(0);
+    process( RESET_N, clk21m )
+    begin
+        if( RESET_N = '0' )then
+            iRESET_N <= (others => '0');
+        elsif( clk21m'event and clk21m = '1' )then
+            if( w_10hz = '1' )then
+                iRESET_N <= iRESET_N(1 downto 0) & "1";
+            end if;
+        end if;
+    end process;
+
+    iSltRst_n <= iRESET_N(2) and ipSW(0);
 
     process( iSltRst_n, clk21m )
     begin
@@ -1206,19 +1219,11 @@ begin
     end process;
 
     --  Reset pulse width = 48 ms
-    process( RstEna, memclk )
-    begin
-        if( RstEna = '0' )then
-            CpuRst_n    <= '0';
-        elsif( memclk'event and memclk = '1' )then
-            CpuRst_n    <= 'Z';
-        end if;
-    end process;
-
     reset       <=  '1' when( iSltRst_n = '0' and RstKeyLock = '0' and HardRst_cnt /= "0001" )else
                     '1' when( swioRESET_n = '0' or HardRst_cnt = "0011" or HardRst_cnt = "0010" or RstSeq /= "11111" )else
                     '0';
     pSltRst_n <= not reset;
+    iCpuRst_n <= not reset;
 
     ----------------------------------------------------------------
     -- Operation mode
@@ -1409,6 +1414,7 @@ begin
                     '0';
 
     -- LEDs assignment
+    pLed8       <=  '0';
     pLed        <=  -- "000" &                              -- Pause Flash for Zemmix Neo               -- dismissed
                     -- (PausFlash          and  FadedGreen) &
                     -- "0000"                               when( ZemmixNeo = '1' and SdPaus = '1' )else
@@ -2529,7 +2535,7 @@ begin
 
     U01 : t80a
         port map(
-            RESET_n     => iSltRst_n,
+            RESET_n     => iCpuRst_n,
             RstKeyLock  => RstKeyLock,
             swioRESET_n => swioRESET_n,
             portF4_mode => portF4_mode,
