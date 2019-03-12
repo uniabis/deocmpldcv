@@ -703,8 +703,8 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pLed[4]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pLed[5]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pLed[6]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pLed[7]
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pLed8
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pLedPwr
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pLed[8]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pLed[9]
 
 set_location_assignment PIN_AA2 -to pLed[0]
 set_location_assignment PIN_AA1 -to pLed[1]
@@ -714,8 +714,8 @@ set_location_assignment PIN_N2 -to pLed[4]
 set_location_assignment PIN_N1 -to pLed[5]
 set_location_assignment PIN_U2 -to pLed[6]
 set_location_assignment PIN_U1 -to pLed[7]
-set_location_assignment PIN_L2 -to pLed8
-set_location_assignment PIN_L1 -to pLedPwr
+set_location_assignment PIN_L2 -to pLed[8]
+set_location_assignment PIN_L1 -to pLed[9]
 
 # --------------------------------
 # PS2
@@ -790,8 +790,8 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDip[4]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDip[5]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDip[6]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDip[7]
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDip8
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDip9
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDip[8]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDip[9]
 
 set_location_assignment PIN_U13 -to pDip[0]
 set_location_assignment PIN_V13 -to pDip[1]
@@ -801,65 +801,63 @@ set_location_assignment PIN_AA15 -to pDip[4]
 set_location_assignment PIN_AB15 -to pDip[5]
 set_location_assignment PIN_AA14 -to pDip[6]
 set_location_assignment PIN_AA13 -to pDip[7]
-set_location_assignment PIN_AB13 -to pDip8
-set_location_assignment PIN_AB12 -to pDip9
+set_location_assignment PIN_AB13 -to pDip[8]
+set_location_assignment PIN_AB12 -to pDip[9]
 
 # --------------------------------
 # VGA
 # --------------------------------
 
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VB[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VB[1]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VB[2]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VB[3]
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VB[4]
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VB[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VG[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VG[1]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VG[2]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VG[3]
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VG[4]
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VG[5]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pVideoHS_n
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VR[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VR[1]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VR[2]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VR[3]
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VR[4]
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pDac_VR[5]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pVideoVS_n
 
-set_location_assignment PIN_B6 -to pDac_VB[2]
-set_location_assignment PIN_B7 -to pDac_VB[3]
-set_location_assignment PIN_A8 -to pDac_VB[4]
-set_location_assignment PIN_A7 -to pDac_VB[5]
-set_location_assignment PIN_L7 -to pDac_VG[2]
-set_location_assignment PIN_K7 -to pDac_VG[3]
-set_location_assignment PIN_J7 -to pDac_VG[4]
-set_location_assignment PIN_J8 -to pDac_VG[5]
+set_location_assignment PIN_B6 -to pDac_VB[0]
+set_location_assignment PIN_B7 -to pDac_VB[1]
+set_location_assignment PIN_A8 -to pDac_VB[2]
+set_location_assignment PIN_A7 -to pDac_VB[3]
+set_location_assignment PIN_L7 -to pDac_VG[0]
+set_location_assignment PIN_K7 -to pDac_VG[1]
+set_location_assignment PIN_J7 -to pDac_VG[2]
+set_location_assignment PIN_J8 -to pDac_VG[3]
 set_location_assignment PIN_H8 -to pVideoHS_n
-set_location_assignment PIN_A9 -to pDac_VR[2]
-set_location_assignment PIN_B10 -to pDac_VR[3]
-set_location_assignment PIN_C9 -to pDac_VR[4]
-set_location_assignment PIN_A5 -to pDac_VR[5]
+set_location_assignment PIN_A9 -to pDac_VR[0]
+set_location_assignment PIN_B10 -to pDac_VR[1]
+set_location_assignment PIN_C9 -to pDac_VR[2]
+set_location_assignment PIN_A5 -to pDac_VR[3]
 set_location_assignment PIN_G8 -to pVideoVS_n
 
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VB
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VB[2]
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VB[3]
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VB[4]
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VB[5]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to pDac_VB[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to pDac_VB[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to pDac_VB[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to pDac_VB[3]
 
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VG
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VG[2]
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VG[3]
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VG[4]
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VG[5]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to pDac_VG[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to pDac_VG[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to pDac_VG[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to pDac_VG[3]
 
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pVideoHS_n
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to pVideoHS_n
 set_instance_assignment -name SLOW_SLEW_RATE OFF -to pVideoHS_n
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to pVideoHS_n
 
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VR
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VR[2]
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VR[3]
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VR[4]
-set_instance_assignment -name CURRENT_STRENGTH_NEW 4MA -to pDac_VR[5]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to pDac_VR[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to pDac_VR[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to pDac_VR[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to pDac_VR[3]
 
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to pVideoVS_n
 set_instance_assignment -name SLOW_SLEW_RATE OFF -to pVideoVS_n
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to pVideoVS_n
 
@@ -931,11 +929,12 @@ set_global_assignment -name VHDL_FILE ../../src/cpu/t80_mcode.vhd
 set_global_assignment -name VHDL_FILE ../../src/cpu/t80_pack.vhd
 set_global_assignment -name VHDL_FILE ../../src/cpu/t80_reg.vhd
 set_global_assignment -name VHDL_FILE ../../src/cpu/t80a.vhd
-set_global_assignment -name VHDL_FILE ../../src/de0cv/iplrom_de0cv.vhd
-set_global_assignment -name VHDL_FILE ../../src/de0cv/emsx_top_de0cv.vhd
+set_global_assignment -name VHDL_FILE ../../src/board/de0cv/ipl/iplrom_de0cv.vhd
+set_global_assignment -name VHDL_FILE ../../src/emsx_top.vhd
+set_global_assignment -name VHDL_FILE ../../src/board/de0cv/emsx_top_de0cv.vhd
 set_global_assignment -name SDC_FILE emsx_top_de0cv.sdc
-set_global_assignment -name QIP_FILE ../../src/de0cv/pll_de0cv.qip
-set_global_assignment -name SIP_FILE ../../src/de0cv/pll_de0cv.sip
+set_global_assignment -name QIP_FILE ../../src/board/de0cv/pll/pll_de0cv.qip
+set_global_assignment -name SIP_FILE ../../src/board/de0cv/pll/pll_de0cv.sip
 
 # ================================
 # Configs

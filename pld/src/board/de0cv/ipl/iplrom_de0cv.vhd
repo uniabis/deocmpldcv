@@ -46,18 +46,13 @@ entity iplrom is
 end iplrom;
 
 architecture rtl of iplrom is
-    type rom_type is array ( 0 to 763 + 260 ) of std_logic_vector (  7 downto 0 );
+    type rom_type is array ( 0 to 1023 ) of std_logic_vector (  7 downto 0 );
     constant ipl_data : rom_type := (
         X"F3",X"01",X"FC",X"02",X"11",X"00",X"FC",X"63",X"6B",X"ED",X"B0",X"21",X"4C",X"FD",X"01",X"99",
         X"02",X"ED",X"B3",X"01",X"9A",X"20",X"ED",X"BB",X"C3",X"1B",X"FC",X"31",X"FF",X"FF",X"3E",X"D4",
-        X"D3",X"40",X"3E",X"80",X"32",X"00",X"70",X"2A",X"00",X"80",X"11",X"41",X"42",X"ED",X"52",X"00",
-        X"00",X"00",X"3E",X"40",X"32",X"00",X"60",X"21",X"00",X"C0",X"04",X"4D",X"55",X"5D",
-
---      X"C3",X"86",X"FC",X"38",X"43",      -- loading BIOS from EPCS only
-        X"CD",X"14",X"FE",X"38",X"43",      -- loading BIOS from SD-CARD or EPCS (default)
---      X"CD",X"14",X"FE",X"38",X"FB",      -- loading BIOS from SD-CARD only
-
-                          X"21",X"00",X"C0",X"01",X"80",X"00",X"3E",X"46",X"ED",X"B1",X"B7",X"20",X"0C",
+        X"D3",X"40",X"3E",X"80",X"32",X"00",X"70",X"00",X"00",X"00",X"00",X"00",X"00",X"00",X"00",X"00",
+        X"00",X"00",X"3E",X"40",X"32",X"00",X"60",X"21",X"00",X"C0",X"04",X"4D",X"55",X"5D",X"CD",X"14",
+        X"FE",X"38",X"43",X"21",X"00",X"C0",X"01",X"80",X"00",X"3E",X"46",X"ED",X"B1",X"B7",X"20",X"0C",
         X"86",X"23",X"86",X"D6",X"DB",X"2B",X"20",X"F1",X"48",X"59",X"51",X"37",X"38",X"57",X"06",X"04",
         X"21",X"C6",X"C1",X"E5",X"5E",X"23",X"56",X"23",X"4E",X"79",X"B2",X"B3",X"E1",X"20",X"07",X"11",
         X"10",X"00",X"19",X"10",X"EE",X"37",X"38",X"0E",X"D5",X"C5",X"06",X"01",X"21",X"00",X"C0",X"CD",
@@ -70,12 +65,7 @@ architecture rtl of iplrom is
         X"DD",X"56",X"17",X"79",X"19",X"CE",X"00",X"10",X"FB",X"D1",X"19",X"EB",X"4F",X"D5",X"C5",X"06",
         X"01",X"21",X"00",X"C0",X"CD",X"14",X"FE",X"38",X"0E",X"2A",X"00",X"C0",X"11",X"41",X"42",X"B7",
         X"ED",X"52",X"C1",X"D1",X"28",X"01",X"37",X"DA",X"86",X"FC",X"3E",X"80",X"06",X"09",X"CD",X"6E",
-        X"FD",X"CD",X"4F",X"FD",X"06",
-
---      X"0F",                              -- loading BIOS 384 kB from SD-CARD / JIS1 only
-        X"17",                              -- loading BIOS 512 kB from SD-CARD / JIS1+JIS2 (default)
-
-                                            X"CD",X"6E",X"FD",X"2F",X"07",X"D3",X"4E",X"AF",X"32",X"00",
+        X"FD",X"CD",X"4F",X"FD",X"06",X"17",X"CD",X"6E",X"FD",X"2F",X"07",X"D3",X"4E",X"AF",X"32",X"00",
         X"60",X"3C",X"32",X"00",X"68",X"32",X"00",X"70",X"32",X"00",X"78",X"3E",X"C0",X"D3",X"A8",X"C7",
         X"77",X"05",X"55",X"02",X"65",X"04",X"11",X"06",X"64",X"06",X"61",X"03",X"73",X"01",X"71",X"06",
         X"27",X"01",X"51",X"03",X"27",X"01",X"17",X"07",X"33",X"06",X"11",X"00",X"00",X"90",X"00",X"08",
@@ -105,26 +95,23 @@ architecture rtl of iplrom is
         X"1C",X"AF",X"C9",X"01",X"00",X"77",X"11",X"00",X"00",X"CD",X"E9",X"FD",X"D8",X"CB",X"57",X"20",
         X"19",X"FE",X"01",X"C0",X"01",X"00",X"69",X"11",X"00",X"00",X"CD",X"E9",X"FD",X"D8",X"CB",X"57",
         X"20",X"08",X"CB",X"47",X"20",X"DD",X"AF",X"1E",X"01",X"C9",X"01",X"00",X"41",X"11",X"00",X"00",
-        X"CD",X"E9",X"FD",X"D8",X"FE",X"01",X"28",X"CB",X"1E",X"00",X"B7",X"C9",
-
-        -- a lot of $FF to reduce LEs (optimization trick)
-                                                                                X"FF",X"FF",X"FF",X"FF",    -- 00
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 01
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 02
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 03
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 04
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 05
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 06
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 07
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 08
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 09
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 10
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 11
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 12
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 13
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 14
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",    -- 15
-        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF"     -- 16
+        X"CD",X"E9",X"FD",X"D8",X"FE",X"01",X"28",X"CB",X"1E",X"00",X"B7",X"C9",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",
+        X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF",X"FF"
     );
 
 begin

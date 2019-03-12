@@ -41,14 +41,18 @@ library ieee;
     use work.vdp_package.all;
 
 entity emsx_top is
+    generic(
+        deocmpldcv         : boolean := false
+    );
     port(
         -- Clock, Reset ports
-        pClk21m         : in    std_logic;                          -- VDP Clock ... 21.48MHz
-        pExtClk         : in    std_logic;                          -- Reserved (for multi FPGAs)
+        clk21m          : in    std_logic;                          -- VDP Clock ... 21.48MHz
+        memclk          : in    std_logic;
         pCpuClk         : out   std_logic;                          -- CPU Clock ... 3.58MHz (up to 10.74MHz/21.48MHz)
+        pW10hz          : out   std_logic;
 
         -- MSX cartridge slot ports
-        pSltClk         : in    std_logic;                          -- pCpuClk returns here, for Z80, etc.
+        xSltRst_n       : out   std_logic;
         pSltRst_n       : in    std_logic;                          -- pCpuRst_n returns here
         pSltSltsl_n     : inout std_logic;
         pSltSlts2_n     : inout std_logic;
@@ -111,8 +115,6 @@ entity emsx_top is
         pDac_VR         : inout std_logic_vector(  5 downto 0);     -- RGB_Red / Svideo_C
         pDac_VG         : inout std_logic_vector(  5 downto 0);     -- RGB_Grn / Svideo_Y
         pDac_VB         : inout std_logic_vector(  5 downto 0);     -- RGB_Blu / CompositeVideo
-        pDac_SL         : out   std_logic_vector(  5 downto 0);     -- Sound-L
-        pDac_SR         : inout std_logic_vector(  5 downto 0);     -- Sound-R / CMT
 
         pVideoHS_n      : out   std_logic;                          -- Csync(RGB15K), HSync(VGA31K)
         pVideoVS_n      : out   std_logic;                          -- Audio(RGB15K), VSync(VGA31K)
@@ -120,35 +122,26 @@ entity emsx_top is
         pVideoClk       : out   std_logic;                          -- (Reserved)
         pVideoDat       : out   std_logic;                          -- (Reserved)
 
-        -- Reserved ports (USB)
-        pUsbP1          : inout std_logic;
-        pUsbN1          : inout std_logic;
-        pUsbP2          : inout std_logic;
-        pUsbN2          : inout std_logic;
+        pRemOut         : out   std_logic;
+        pCmtOut         : out   std_logic;
+        pCmtIn          : in    std_logic;
+        pCmtEn          : out   std_logic;
 
-        -- Reserved ports
-        pIopRsv14       : in    std_logic;
-        pIopRsv15       : in    std_logic;
-        pIopRsv16       : in    std_logic;
-        pIopRsv17       : in    std_logic;
-        pIopRsv18       : in    std_logic;
-        pIopRsv19       : in    std_logic;
-        pIopRsv20       : in    std_logic;
-        pIopRsv21       : in    std_logic
+        pDacOut         : out   std_logic;
+        pDacLMute       : out   std_logic;
+        pDacRInverse    : out   std_logic;
+
+        -- EPCS ports
+        EPC_CK          : out   std_logic;
+        EPC_CS          : out   std_logic;
+        EPC_OE          : out   std_logic;
+        EPC_DI          : out   std_logic;
+        EPC_DO          : in    std_logic
+
     );
 end emsx_top;
 
 architecture RTL of emsx_top is
-
-    -- Clock generator ( Altera specific component )
-    component pll4x
-        port(
-            inclk0  : in    std_logic := '0';   -- 21.48MHz input to PLL    (external I/O pin, from crystal oscillator)
-            c0      : out   std_logic;          -- 21.48MHz output from PLL (internal LEs, for VDP, internal-bus, etc.)
-            c1      : out   std_logic;          -- 85.92MHz output from PLL (internal LEs, for SD-RAM)
-            e0      : out   std_logic           -- 85.92MHz output from PLL (external I/O pin, for SD-RAM)
-        );
-    end component;
 
     -- CPU
     component t80a
@@ -217,17 +210,6 @@ architecture RTL of emsx_top is
             epc_oe  : out   std_logic;
             epc_di  : out   std_logic;
             epc_do  : in    std_logic
-        );
-    end component;
-
-    -- ASMI (Altera specific component)
-    component cyclone_asmiblock
-        port (
-            dclkin      : in    std_logic;      -- DCLK
-            scein       : in    std_logic;      -- nCSO
-            sdoin       : in    std_logic;      -- ASDO
-            oe          : in    std_logic;      -- 1=disable(Hi-Z)
-            data0out    : out   std_logic       -- DATA0
         );
     end component;
 
@@ -616,7 +598,7 @@ architecture RTL of emsx_top is
     signal  swioCmt         : std_logic;
     signal  LightsMode      : std_logic;
     signal  Red_sta         : std_logic;
-    signal  LastRst_sta     : std_logic;                                    -- here to reduce LEs
+    signal  LastRst_sta     : std_logic := '0';                             -- here to reduce LEs
     signal  RstReq_sta      : std_logic;                                    -- here to reduce LEs
     signal  Blink_ena       : std_logic;
     signal  pseudoStereo    : std_logic;
@@ -630,11 +612,11 @@ architecture RTL of emsx_top is
     signal  LevCtrl         : std_logic_vector(  2 downto 0 );
     signal  GreenLvEna      : std_logic;
     signal  swioRESET_n     : std_logic;
-    signal  warmRESET       : std_logic;
+    signal  warmRESET       : std_logic := '0';
     signal  WarmMSXlogo     : std_logic;                                    -- here to reduce LEs
     signal  ZemmixNeo       : std_logic;
     signal  JIS2_ena        : std_logic;
-    signal  portF4_mode     : std_logic;
+    signal  portF4_mode     : std_logic := '0';
     signal  RatioMode       : std_logic_vector(  2 downto 0 );
     signal  centerYJK_R25_n : std_logic;
     signal  legacy_sel      : std_logic;
@@ -656,8 +638,6 @@ architecture RTL of emsx_top is
     alias   MmcMode         : std_logic is MegaSD_ack;                      -- '0': disable SD/MMC  '1': enable SD/MMC
 
     -- Clock, Reset control signals
-    signal  clk21m          : std_logic;
-    signal  memclk          : std_logic;
     signal  cpuclk          : std_logic;
     signal  clkena          : std_logic;
     signal  clkdiv          : std_logic_vector(  1 downto 0 );
@@ -733,7 +713,7 @@ architecture RTL of emsx_top is
 
     -- IPL-ROM signals
     signal  RomDbi          : std_logic_vector(  7 downto 0 );
-    signal  ff_ldbios_n     : std_logic;
+    signal  ff_ldbios_n     : std_logic := '0';
 
     -- ESE-RAM signals
     signal  ErmReq          : std_logic;
@@ -746,13 +726,6 @@ architecture RTL of emsx_top is
     signal  MmcAct          : std_logic;
     signal  MmcDbi          : std_logic_vector(  7 downto 0 );
     signal  MmcEnaLed       : std_logic;
-
-    -- EPCS/ASMI signals
-    signal  EPC_CK          : std_logic;
-    signal  EPC_CS          : std_logic;
-    signal  EPC_OE          : std_logic;
-    signal  EPC_DI          : std_logic;
-    signal  EPC_DO          : std_logic;
 
     -- Mapper RAM signals
     signal  MapReq          : std_logic;
@@ -784,6 +757,7 @@ architecture RTL of emsx_top is
     signal  Fkeys           : std_logic_vector(  7 downto 0 );
 
     -- CMT signals
+    alias   RemOut          : std_logic is PpiPortC(4);
     signal  CmtIn           : std_logic;
     alias   CmtOut          : std_logic is PpiPortC(5);
 
@@ -1211,6 +1185,8 @@ begin
                     '1' when( swioRESET_n = '0' or HardRst_cnt = "0011" or HardRst_cnt = "0010" or RstSeq /= "11111" )else
                     '0';
 
+    xSltRst_n   <= not reset;
+
     ----------------------------------------------------------------
     -- Operation mode
     ----------------------------------------------------------------
@@ -1231,6 +1207,7 @@ begin
 
     w_10hz      <=  '1' when( rtcbase_cnt = "0010001111000001111010" )else
                     '0';
+    pW10hz      <=  w_10hz;
 
     process ( clk21m )
     begin
@@ -1991,7 +1968,7 @@ begin
 --              legacy_vga  <= '0';                                 -- behaves like vAllow_n        (for V9938 MSX2 VDP)
 
             when "01" =>                                            -- RGB 15kHz
-                if( ZemmixNeo = '1')then                            -- Luminance 100%
+                if( ZemmixNeo = '1' or deocmpldcv)then                 -- Luminance 100%
                     pDac_VR     <= VideoR;
                     pDac_VG     <= VideoG;
                     pDac_VB     <= VideoB;
@@ -2006,7 +1983,7 @@ begin
 --              legacy_vga  <= '0';                                 -- behaves like vAllow_n        (for V9938 MSX2 VDP)
 
             when others =>                                          -- VGA / VGA+ 31kHz
-                if( ZemmixNeo = '1')then                            -- Luminance 100%
+                if( ZemmixNeo = '1' or deocmpldcv)then                 -- Luminance 100%
                     pDac_VR     <= VideoR;
                     pDac_VG     <= VideoG;
                     pDac_VB     <= VideoB;
@@ -2091,13 +2068,25 @@ begin
                 ff_psg      <= ( others => '0' );
             elsif( c_Psg > h_thrd )then
                 chPsg       := ff_prepsg;
-                ff_psg      <= "0" & ("0" & (chPsg * (PsgVol - MstrVol + h_ramp + x_thrd)) + chPsg( chPsg'high - 4 downto  0 )) & "00";
+                if( deocmpldcv )then
+                    ff_psg  <= ("0" & (chPsg * (PsgVol - MstrVol + h_ramp + x_thrd)) + chPsg( chPsg'high - 4 downto  0 )) & "000";
+                else
+                    ff_psg  <= "0" & ("0" & (chPsg * (PsgVol - MstrVol + h_ramp + x_thrd)) + chPsg( chPsg'high - 4 downto  0 )) & "00";
+                end if;
             elsif( c_Psg > (m_thrd - x_thrd) )then
                 chPsg       := "0" & ff_prepsg( ff_prepsg'high downto 1 );
-                ff_psg      <= "0" & ("0" & (chPsg * (PsgVol - MstrVol + m_ramp + x_thrd)) + chPsg( chPsg'high - 4 downto  0 )) & "00";
+                if( deocmpldcv )then
+                    ff_psg  <= ("0" & (chPsg * (PsgVol - MstrVol + m_ramp + x_thrd)) + chPsg( chPsg'high - 4 downto  0 )) & "000";
+                else
+                    ff_psg  <= "0" & ("0" & (chPsg * (PsgVol - MstrVol + m_ramp + x_thrd)) + chPsg( chPsg'high - 4 downto  0 )) & "00";
+                end if;
             else
                 chPsg       := "00" & ff_prepsg( ff_prepsg'high downto 2 );
-                ff_psg      <= "0" & ("0" & (chPsg * (PsgVol - MstrVol + l_ramp + x_thrd)) + chPsg( chPsg'high - 4 downto  0 )) & "00";
+                if( deocmpldcv )then
+                    ff_psg  <= ("0" & (chPsg * (PsgVol - MstrVol + l_ramp + x_thrd)) + chPsg( chPsg'high - 4 downto  0 )) & "000";
+                else
+                    ff_psg  <= "0" & ("0" & (chPsg * (PsgVol - MstrVol + l_ramp + x_thrd)) + chPsg( chPsg'high - 4 downto  0 )) & "00";
+                end if;
             end if;
             -- amplitude ramp of SCC-I
             ff_prescc   <= (Scc1AmpL(14) & Scc1AmpL) + (Scc2AmpL(14) & Scc2AmpL);
@@ -2148,42 +2137,31 @@ begin
         if( clk21m'event and clk21m = '1' )then
             ff_pre_dacin <= (not ff_psg + ff_scc) + ff_opll;
             -- amplitude limiter
-            case ff_pre_dacin( ff_pre_dacin'high downto ff_pre_dacin'high - 2 ) is
-                when "111" => DACin <= (others => '1');
-                when "110" => DACin <= (others => '1');
-                when "101" => DACin <= (others => '1');
-                when "100" => DACin <= "1" & ff_pre_dacin( ff_pre_dacin'high - 3 downto 0 );
-                when "011" => DACin <= "0" & ff_pre_dacin( ff_pre_dacin'high - 3 downto 0 );
-                when "010" => DACin <= (others => '0');
-                when "001" => DACin <= (others => '0');
-                when "000" => DACin <= (others => '0');
-            end case;
+            if( deocmpldcv )then
+                case ff_pre_dacin( ff_pre_dacin'high downto ff_pre_dacin'high - 4 ) is
+                    when "10000" => DACin <= ff_pre_dacin( ff_pre_dacin'high ) & ff_pre_dacin( ff_pre_dacin'high - 5 downto 0 ) & "00";
+                    when "01111" => DACin <= ff_pre_dacin( ff_pre_dacin'high ) & ff_pre_dacin( ff_pre_dacin'high - 5 downto 0 ) & "00";
+                    when others => DACin <= (others => ff_pre_dacin( ff_pre_dacin'high ));
+                end case;
+            else
+                case ff_pre_dacin( ff_pre_dacin'high downto ff_pre_dacin'high - 2 ) is
+                    when "100" => DACin <= ff_pre_dacin( ff_pre_dacin'high ) & ff_pre_dacin( ff_pre_dacin'high - 3 downto 0 );
+                    when "011" => DACin <= ff_pre_dacin( ff_pre_dacin'high ) & ff_pre_dacin( ff_pre_dacin'high - 3 downto 0 );
+                    when others => DACin <= (others => ff_pre_dacin( ff_pre_dacin'high ));
+                end case;
+            end if;
 --          DACin <= ff_pcm;        -- test PCM
         end if;
     end process;
 
-    pDac_SL   <=  "ZZZZZZ"  when( pseudoStereo = '1' and CmtScro = '0' )else
-                  DACout & "ZZZZ" & DACout;                     -- the DACout setting is used to balance the input line of external slots
+    pRemOut      <= RemOut;
+    pCmtOut      <= CmtOut;
+    CmtIn        <= pCmtIn;
+    pCmtEn       <= '1' when CmtScro = '1' and portF4_mode = '0' else '0';
 
-    -- Cassette Magnetic Tape (CMT) interface
-    process( clk21m )
-    begin
-        if( clk21m'event and clk21m = '1' )then
-            if( CmtScro = '1' and portF4_mode = '0' )then       -- when Scroll Lock is On
-                pDac_SR(5 downto 4) <= "ZZ";
-                pDac_SR(3 downto 1) <= CmtIn & (not CmtIn) & "0";
-                pDac_SR(0)          <= CmtOut;
-                CmtIn               <= pDac_SR(5);
-            else                                                -- when Scroll Lock is Off (default)
-                CmtIn               <= '0';                     -- CMT data input is always '0' on MSX turbo-R
-                if( right_inverse = '0' )then
-                    pDac_SR         <= DACout & "ZZZZ" & DACout;
-                else
-                    pDac_SR         <= not DACout & "ZZZZ" & not DACout;
-                end if;
-            end if;
-        end if;
-    end process;
+    pDacOut      <= DACout;
+    pDacLMute    <= '1' when pseudoStereo = '1' and CmtScro = '0' else '0';
+    pDacRInverse <= right_inverse;
 
     -- SCRLK key
     process( reset, clk21m )
@@ -2531,23 +2509,8 @@ begin
     pMemDat     <= SdrDat;
 
     ----------------------------------------------------------------
-    -- Reserved ports (USB)
-    ----------------------------------------------------------------
-    pUsbP1      <= 'Z';
-    pUsbN1      <= 'Z';
-    pUsbP2      <= 'Z';
-    pUsbN2      <= 'Z';
-
-    ----------------------------------------------------------------
     -- Connect components
     ----------------------------------------------------------------
-    U00 : pll4x
-        port map(
-            inclk0   => pClk21m,                -- 21.48MHz external
-            c0       => clk21m,                 -- 21.48MHz internal
-            c1       => memclk,                 -- 85.92MHz = 21.48MHz x 4
-            e0       => pMemClk                 -- 85.92MHz external
-        );
 
     U01 : t80a
         port map(
@@ -2582,9 +2545,6 @@ begin
                         MmcDbi, MmcEna, MmcAct, pSd_Ck, pSd_Dt(3), pSd_Cm, pSd_Dt(0),
                         EPC_CK, EPC_CS, EPC_OE, EPC_DI, EPC_DO);
         pSd_Dt(2 downto 0) <= (others => 'Z');
-
-    U04 : cyclone_asmiblock
-        port map(EPC_CK, EPC_CS, EPC_DI, EPC_OE, EPC_DO);
 
     U05 : mapper
         port map(clk21m, reset, clkena, MapReq, open, mem, wrt, adr, MapDbi, dbo,
