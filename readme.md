@@ -1,6 +1,21 @@
 ﻿
+## Description
+
 This project is a port of the [1chipMSX](http://www.msx.d4e.co.jp/1chipmsx.html) to [DEOCM](http://yone2.net/deocm) + [DE0-CV](http://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&No=921)
 including modification of [OCM-PLD](http://gnogni.altervista.org/).
+
+## How to install
+
+1. [Register and SignIn for Intel FPGA Program.](https://www.intel.com/content/www/us/en/forms/fpga/fpga-individual-registration.html)
+2. [Download and install Additional Software>Quartus Prime Programmer and Tools.](http://fpgasoftware.intel.com/?edition=lite&platform=windows&download_manager=direct)
+3. [Download and unzip pof file from deocm-pld-cv Releases.](https://github.com/uniabis/deocmpldcv/releases)
+4. Connect your PC and DE0-CV with USB cable.
+5. Set the RUN/PROG slide switch (SW10) of DE0-CV to the PROG position.
+6. Run Quartus Prime Programmer and Tools Write pof file to flash memory(EPCS) on DE0-CV.
+7. Set the RUN/PROG slide switch (SW10) of DE0-CV to the RUN position.
+
+## Licenses
+
 
 ```vhdl:ocm_license.vhdl
 --
