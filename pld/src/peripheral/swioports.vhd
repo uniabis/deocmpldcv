@@ -120,7 +120,7 @@ architecture RTL of switched_io_ports is
 
     -- 'OCM-PLD' version number (x \ 10).(y mod 10).(z[0~3])                -- OCM-PLD version 0.0(.0) ~ 25.5(.3)
     constant ocm_pld_xy : std_logic_vector(  7 downto 0 ) := "00100101";    -- 37
-    constant ocm_pld_z  : std_logic_vector(  1 downto 0 ) :=       "00";    -- 0
+    constant ocm_pld_z  : std_logic_vector(  1 downto 0 ) :=       "01";    -- 1
 
     -- 'Switched I/O Ports' revision number (0-31)                          -- Switched I/O ports Revision 0 ~ 31
     constant swioRevNr  : std_logic_vector(  4 downto 0 ) :=    "01001";    -- 9

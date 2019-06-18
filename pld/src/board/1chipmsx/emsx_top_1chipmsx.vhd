@@ -264,25 +264,25 @@ architecture RTL of emsx_top_1chipmsx is
 
 
     -- Clock ports
-    signal        clk21m       : std_logic;
-    signal        memclk       : std_logic;
+    signal    clk21m           : std_logic;
+    signal    memclk           : std_logic;
 
     -- EPCS ports
-    signal        EPC_CK       : std_logic;
-    signal        EPC_CS       : std_logic;
-    signal        EPC_OE       : std_logic;
-    signal        EPC_DI       : std_logic;
-    signal        EPC_DO       : std_logic;
+    signal    EPC_CK           : std_logic;
+    signal    EPC_CS           : std_logic;
+    signal    EPC_OE           : std_logic;
+    signal    EPC_DI           : std_logic;
+    signal    EPC_DO           : std_logic;
 
     -- CMT ports
-    signal        pCmtOut      : std_logic;
-    signal        pCmtIn       : std_logic;
-    signal        pCmtEn       : std_logic;
+    signal    CmtOut           : std_logic;
+    signal    CmtIn            : std_logic;
+    signal    CmtEn            : std_logic;
 
     -- Audio ports
-    signal        pDacOut      : std_logic;
-    signal        pDacLMute    : std_logic;
-    signal        pDacRInverse : std_logic;
+    signal    DacOut           : std_logic;
+    signal    DacLMute         : std_logic;
+    signal    right_inverse    : std_logic;
 
 begin
 
@@ -294,28 +294,31 @@ begin
     pUsbP2      <= 'Z';
     pUsbN2      <= 'Z';
 
+    ----------------------------------------------------------------
+    -- Sound output
+    ----------------------------------------------------------------
+    pDac_SL   <=  "ZZZZZZ"  when( DacLMute = '1' )else
+                  DACout & "ZZZZ" & DACout;                     -- the DACout setting is used to balance the input line of external slots
+
     -- Cassette Magnetic Tape (CMT) interface
     process( clk21m )
     begin
         if( clk21m'event and clk21m = '1' )then
-            if( pCmtEn = '1' )then       -- when Scroll Lock is On
+            if( CmtEn = '1' )then                               -- when Scroll Lock is On
                 pDac_SR(5 downto 4) <= "ZZ";
-                pDac_SR(3 downto 1) <= pCmtIn & (not pCmtIn) & "0";
-                pDac_SR(0)          <= pCmtOut;
-                pCmtIn              <= pDac_SR(5);
+                pDac_SR(3 downto 1) <= CmtIn & (not CmtIn) & "0";
+                pDac_SR(0)          <= CmtOut;
+                CmtIn               <= pDac_SR(5);
             else                                                -- when Scroll Lock is Off (default)
-                pCmtIn              <= '0';                     -- CMT data input is always '0' on MSX turbo-R
-                if( pDacRInverse = '0' )then
-                    pDac_SR         <= pDACout & "ZZZZ" & pDACout;
+                CmtIn               <= '0';                     -- CMT data input is always '0' on MSX turbo-R
+                if( right_inverse = '0' )then
+                    pDac_SR         <= DACout & "ZZZZ" & DACout;
                 else
-                    pDac_SR         <= not pDACout & "ZZZZ" & not pDACout;
+                    pDac_SR         <= not DACout & "ZZZZ" & not DACout;
                 end if;
             end if;
         end if;
     end process;
-
-    pDac_SL   <=  "ZZZZZZ"  when( pDacLMute = '1' )else
-                  pDACout & "ZZZZ" & pDACout;                   -- the DACout setting is used to balance the input line of external slots
 
     ----------------------------------------------------------------
     -- Connect components
@@ -402,13 +405,13 @@ begin
             pVideoDat,
 
             open,
-            pCmtOut,
-            pCmtIn,
-            pCmtEn,
+            CmtOut,
+            CmtIn,
+            CmtEn,
 
-            pDacOut,
-            pDacLMute,
-            pDacRInverse,
+            DacOut,
+            DacLMute,
+            right_inverse,
 
             EPC_CK,
             EPC_CS,

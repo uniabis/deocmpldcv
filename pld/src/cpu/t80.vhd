@@ -1,7 +1,7 @@
 --
 -- Z80 compatible microprocessor core
 --
--- Version : 0250 (+k02)
+-- Version : 0250 (+k03)
 --
 -- Copyright (c) 2001-2002 Daniel Wallner (jesus@opencores.org)
 --
@@ -72,7 +72,9 @@
 --
 --  0250 : Added R800 Multiplier by TobiFlex 2017.10.15
 --
---  +k02 : Added portF4_mode signal by KdL 2018.05.14
+--  +k02 : Added R800_mode signal by KdL 2018.05.14
+--
+--  +k03 : Version alignment by KdL 2019.05.20
 --
 
 library IEEE;
@@ -116,7 +118,7 @@ entity T80 is
         MC          : out std_logic_vector(2 downto 0);
         TS          : out std_logic_vector(2 downto 0);
         IntCycle_n  : out std_logic;
-        portF4_mode : inout std_logic;
+        R800_mode   : in std_logic;
         IntE        : out std_logic;
         Stop        : out std_logic
     );
@@ -329,7 +331,7 @@ begin
             NoRead => NoRead,
             Write => Write,
             XYbit_undoc => XYbit_undoc,
-            portF4_mode => portF4_mode);
+            R800_mode => R800_mode);
 
     alu : T80_ALU
         generic map(

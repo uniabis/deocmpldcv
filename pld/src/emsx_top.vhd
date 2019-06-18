@@ -30,7 +30,7 @@
 -- ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --
 --------------------------------------------------------------------------------------
--- OCM-PLD Pack v3.7 by KdL (2019.04.15) / MSX2+ Stable Release / MSXtR Experimental
+-- OCM-PLD Pack v3.7.1 by KdL (2019.05.20) / MSX2+ Stable Release / MSXtR Experimental
 -- Special thanks to t.hara, caro, mygodess & all MRC users (http://www.msx.org)
 --------------------------------------------------------------------------------------
 --
@@ -146,9 +146,7 @@ architecture RTL of emsx_top is
     component t80a
         port(
             RESET_n     : in    std_logic;
-            RstKeyLock  : inout std_logic;
-            swioRESET_n : inout std_logic;
-            portF4_mode : inout std_logic;
+            R800_mode   : in    std_logic;
             CLK_n       : in    std_logic;
             WAIT_n      : in    std_logic;
             INT_n       : in    std_logic;
@@ -670,7 +668,6 @@ architecture RTL of emsx_top is
     signal  iSltAdr         : std_logic_vector( 15 downto 0 );
     signal  iSltDat         : std_logic_vector(  7 downto 0 );
     signal  dlydbi          : std_logic_vector(  7 downto 0 );
-    signal  BusReq_n        : std_logic;
     signal  CpuM1_n         : std_logic;
     signal  CpuRfsh_n       : std_logic;
 
@@ -984,7 +981,7 @@ begin
     process( reset, clk21m )
     begin
         if( reset = '1' )then
-            clkdiv  <= "10";                                                            -- 5.37 MHz sync
+            clkdiv  <= "10";                                                            -- 5.37MHz sync
         elsif( clk21m'event and clk21m = '1' )then
             clkdiv  <=  clkdiv - 1;
         end if;
@@ -1102,16 +1099,16 @@ begin
 
     -- cpu clock assignment
     trueClk     <=  -- '1'          when( SdPaus /= '0' )else                                               -- dismissed
-                    clkdiv(0)       when( ff_clksel = '1' and reset /= '1' )else                            -- 10.74 MHz
-                    clkdiv(1)       when( ff_clksel5m_n = '0' and reset /= '1' )else                        --  5.37 MHz
-                    cpuclk;                                                                                 --  3.58 MHz
+                    clkdiv(0)       when( ff_clksel = '1' and reset /= '1' )else                            -- 10.74MHz
+                    clkdiv(1)       when( ff_clksel5m_n = '0' and reset /= '1' )else                        --  5.37MHz
+                    cpuclk;                                                                                 --  3.58MHz
 
     -- slots clock assignment
     pCpuClk     <=  -- '1'          when( SdPaus /= '0' or FirstBoot_n /= '1' )else                         -- dismissed
                     '1'             when( FirstBoot_n /= '1' )else
-                    clkdiv(0)       when( ff_clksel = '1' and extclk3m = '0' and reset /= '1' )else         -- 10.74 MHz
-                    clkdiv(1)       when( ff_clksel5m_n = '0' and extclk3m = '0' and reset /= '1' )else     --  5.37 MHz
-                    cpuclk;                                                                                 --  3.58 MHz
+                    clkdiv(0)       when( ff_clksel = '1' and extclk3m = '0' and reset /= '1' )else         -- 10.74MHz
+                    clkdiv(1)       when( ff_clksel5m_n = '0' and extclk3m = '0' and reset /= '1' )else     --  5.37MHz
+                    cpuclk;                                                                                 --  3.58MHz
 
     ----------------------------------------------------------------
     -- Reset control
@@ -1193,6 +1190,7 @@ begin
 
     w_10hz      <=  '1' when( rtcbase_cnt = "0010001111000001111010" )else
                     '0';
+
     pW10hz      <=  w_10hz;
 
     process ( clk21m )
@@ -1299,7 +1297,7 @@ begin
                     pLedPwr <= FadedRed;                    -- 5.37MHz On   is Faded Red only
                 end if;
             else
---              pLedPwr <= logo_timeout(0);                 -- test of logo speed limiter
+--              pLedPwr <= logo_timeout(0);                 -- test for the logo speed limiter
                 pLedPwr <= '0';                             -- Off / Blink
             end if;
         end if;
@@ -1500,7 +1498,7 @@ begin
 
             if( pSltMerq_n = '0' and jSltMerq_n = '1' )then
                 if( ff_clksel = '1' )then
-                    count := CustomSpeed;                               -- 8 MHz until 4 MHz
+                    count := CustomSpeed;                               -- 8.06MHz until 4.10MHz
                 elsif( ff_clksel5m_n = '0' and (iSltScc1 = '1' or iSltScc2 = '1') )then
                     count := "0001";
                 end if;
@@ -1693,7 +1691,7 @@ begin
                 dlydbi;
 
     ----------------------------------------------------------------
-    -- port F4
+    -- Port F4
     ----------------------------------------------------------------
     process( clk21m, reset, LastRst_sta )
     begin
@@ -1714,13 +1712,13 @@ begin
         if( reset = '1' )then
             PpiPortA    <= "11111111";          -- primary slot : page 0 => boot-rom, page 1/2 => ese-mmc, page 3 => mapper
             PpiPortC    <= (others => '0');
-            ff_ldbios_n <= '0';                 -- EPL-ROM is ready to load the OCM-BIOS
+            ff_ldbios_n <= '0';                 -- OCM-BIOS is waiting to be loaded by EPL-ROM
         elsif( clk21m'event and clk21m = '1' )then
             -- I/O port access on A8-ABh ... PPI(8255) access
             if( PpiReq = '1' )then
                 if( wrt = '1' and adr(1 downto 0) = "00" )then
                     PpiPortA    <= dbo;
-                    ff_ldbios_n <= '1';         -- OCM-BIOS was loaded by EPL-ROM
+                    ff_ldbios_n <= '1';         -- OCM-BIOS has been loaded by EPL-ROM
                 elsif( wrt = '1' and adr(1 downto 0) = "10" )then
                     PpiPortC  <= dbo;
                 elsif( wrt = '1' and adr(1 downto 0) = "11" and dbo(7) = '0' )then
@@ -1917,7 +1915,7 @@ begin
     systim_req  <=  req when( mem = '0' and adr(7 downto 1) = "1110011" )else '0';                  -- I/O:E6-E7h   / System timer (S1990)
     swio_req    <=  req when( mem = '0' and adr(7 downto 4) = "0100" )else '0';                     -- I/O:40-4Fh   / Switched I/O ports
     portF4_req  <=  req when( mem = '0' and adr(7 downto 0) = "11110100" )else '0';                 -- I/O:F4h      / Port F4 device
-    --  pcm_req <=  req when( mem = '0' and adr(7 downto 1) = "1110100" )else '0';                  -- I/O:E8-E9h   / Test PCM
+    --  pcm_req <=  req when( mem = '0' and adr(7 downto 1) = "1110100" )else '0';                  -- I/O:E8-E9h   / test PCM
 
     BusDir  <=  '1' when( pSltAdr(7 downto 2) = "100110"                         )else  -- I/O:98-9Bh / VDP (V9938/V9958)
                 '1' when( pSltAdr(7 downto 2) = "101000"                         )else  -- I/O:A0-A3h / PSG (AY-3-8910)
@@ -1930,7 +1928,7 @@ begin
                 '1' when( pSltAdr(7 downto 4) = "0100" and io40_n /= "11111111"  )else  -- I/O:40-4Fh / Switched I/O ports
                 '1' when( pSltAdr(7 downto 0) = "10100111" and portF4_mode = '1' )else  -- I/O:A7h    / Pause R800 (read only)
                 '1' when( pSltAdr(7 downto 0) = "11110100"                       )else  -- I/O:F4h    / Port F4 device
---              '1' when( pSltAdr(7 downto 1) = "1110100"                        )else  -- I/O:E8-E9h / Test PCM
+--              '1' when( pSltAdr(7 downto 1) = "1110100"                        )else  -- I/O:E8-E9h / test PCM
                 '0';
 
     ----------------------------------------------------------------
@@ -1939,7 +1937,7 @@ begin
 --  V9938_n <= '0';         -- '0' is V9938 MSX2 VDP
     V9938_n <= '1';         -- '1' is V9958 MSX2+/tR VDP
 
-    process (clk21m)
+    process( clk21m )
     begin
         if( clk21m'event and clk21m = '1' )then
             case DisplayMode is
@@ -1957,10 +1955,10 @@ begin
                     pDac_VR     <= VideoR;
                     pDac_VG     <= VideoG;
                     pDac_VB     <= VideoB;
-                else                                                -- Luminance 56.25% = 50% + 6.25%
-                    pDac_VR     <= ("0" & VideoR( 5 downto 1 )) + ("0000" & VideoR( 5 downto 4 ));
-                    pDac_VG     <= ("0" & VideoG( 5 downto 1 )) + ("0000" & VideoG( 5 downto 4 ));
-                    pDac_VB     <= ("0" & VideoB( 5 downto 1 )) + ("0000" & VideoB( 5 downto 4 ));
+                else                                                -- Luminance 50%
+                    pDac_VR     <= "0" & VideoR( 5 downto 1 );
+                    pDac_VG     <= "0" & VideoG( 5 downto 1 );
+                    pDac_VB     <= "0" & VideoB( 5 downto 1 );
                 end if;
                 Reso_v      <= '0';                                 -- Hsync:15kHz
                 pVideoHS_n  <= VideoCS_n;                           -- CSync Enabled
@@ -1972,10 +1970,10 @@ begin
                     pDac_VR     <= VideoR;
                     pDac_VG     <= VideoG;
                     pDac_VB     <= VideoB;
-                else                                                -- Luminance 56.25% = 50% + 6.25%
-                    pDac_VR     <= ("0" & VideoR( 5 downto 1 )) + ("0000" & VideoR( 5 downto 4 ));
-                    pDac_VG     <= ("0" & VideoG( 5 downto 1 )) + ("0000" & VideoG( 5 downto 4 ));
-                    pDac_VB     <= ("0" & VideoB( 5 downto 1 )) + ("0000" & VideoB( 5 downto 4 ));
+                else                                                -- Luminance 50%
+                    pDac_VR     <= "0" & VideoR( 5 downto 1 );
+                    pDac_VG     <= "0" & VideoG( 5 downto 1 );
+                    pDac_VB     <= "0" & VideoB( 5 downto 1 );
                 end if;
                 Reso_v      <= '1';                                 -- Hsync:31kHz
                 pVideoHS_n  <= VideoHS_n;
@@ -2381,9 +2379,9 @@ begin
                         if( RstSeq(4 downto 3) /= "11" )then
                             SdrDat <= (others => '0');
                         elsif( VideoDLClk = '0' )then
-                            SdrDat <= dbo & dbo;                    -- "101"(cpu write)
+                            SdrDat <= dbo & dbo;                -- "101"(cpu write)
                         else
-                            SdrDat <= VrmDbo & VrmDbo;              -- "111"(vdp write)
+                            SdrDat <= VrmDbo & VrmDbo;          -- "111"(vdp write)
                         end if;
                     end if;
                 end if;
@@ -2412,7 +2410,7 @@ begin
     begin
         if( memclk'event and memclk = '1' )then
             if( ff_sdr_seq = "101" )then
-                if( SdrSta = "100" )then        -- read cpu
+                if( SdrSta = "100" )then                        -- read cpu
                     if( CpuAdr(0) = '0' )then
                         RamDbi <= pMemDat(  7 downto 0 );
                     else
@@ -2428,7 +2426,7 @@ begin
     begin
         if( memclk'event and memclk = '1' )then
             if( ff_sdr_seq = "101" )then
-                if( SdrSta = "110" )then        -- read vdp
+                if( SdrSta = "110" )then                        -- read vdp
                     VrmDbi <= pMemDat( 15 downto 0 );
                 end if;
             end if;
@@ -2482,7 +2480,7 @@ begin
             elsif( VideoDLClk = '0' and VideoDHClk = '1' )then
                 RamAck <= '1';
             end if;
-            if( VideoDLClk = '0' )then 
+            if( VideoDLClk = '0' )then
                 vram_page <= vram_slot_ids;
             end if;
         end if;
@@ -2507,15 +2505,13 @@ begin
     ----------------------------------------------------------------
     U01 : t80a
         port map(
-            RESET_n     => pSltRst_n,
-            RstKeyLock  => RstKeyLock,
-            swioRESET_n => swioRESET_n,
-            portF4_mode => portF4_mode,
+            RESET_n     => ((pSltRst_n or RstKeyLock) and swioRESET_n),
+            R800_mode   => portF4_mode,
             CLK_n       => trueClk,
             WAIT_n      => pSltWait_n,
             INT_n       => pSltInt_n,
             NMI_n       => '1',
-            BUSRQ_n     => BusReq_n,
+            BUSRQ_n     => '1',
             M1_n        => CpuM1_n,
             MREQ_n      => pSltMerq_n,
             IORQ_n      => pSltIorq_n,
@@ -2527,7 +2523,6 @@ begin
             A           => pSltAdr,
             D           => pSltDat
         );
-        BusReq_n    <= '1';
 
     U02 : iplrom
         port map(clk21m, adr, RomDbi);
@@ -2588,8 +2583,17 @@ begin
     U32 : eseopll
         port map(clk21m, reset, clkena, OpllEnaWait, OpllReq, OpllAck, wrt, adr, dbo, OpllAmp);
 
-    OpllEnaWait     <=  '1' when( ff_clksel = '1' or ff_clksel5m_n = '0' )else
-                        '0';
+    -- OPLL enabler
+    process( clk21m )
+    begin
+        if( clk21m'event and clk21m = '1' )then
+            if( ff_clksel = '1' or ff_clksel5m_n = '0' )then
+                OpllEnaWait <= '1';
+            else
+                OpllEnaWait <= '0';
+            end if;
+        end if;
+    end process;
 
     --  sound output lowpass filter (sccic)
 --  process( reset, clk21m )
@@ -2655,7 +2659,7 @@ begin
             adr             => adr              ,
             dbi             => swio_dbi         ,
             dbo             => dbo              ,
-        
+
             io40_n          => io40_n           ,
             io41_id212_n    => io41_id212_n     ,   -- here to reduce LEs
             io42_id212      => io42_id212       ,
@@ -2690,10 +2694,10 @@ begin
             right_inverse   => right_inverse    ,
             vram_slot_ids   => vram_slot_ids    ,
             DefKmap         => DefKmap          ,   -- here to reduce LEs
-        
+
             ff_dip_req      => ff_dip_req       ,
             ff_dip_ack      => ff_dip_ack       ,   -- here to reduce LEs
-        
+
 --          SdPaus          => SdPaus           ,   -- dismissed
             Scro            => Scro             ,
             ff_Scro         => ff_Scro          ,
@@ -2703,17 +2707,17 @@ begin
             vFKeys          => vFKeys           ,
             LevCtrl         => LevCtrl          ,
             GreenLvEna      => GreenLvEna       ,
-        
+
             swioRESET_n     => swioRESET_n      ,
             warmRESET       => warmRESET        ,
             WarmMSXlogo     => WarmMSXlogo      ,   -- here to reduce LEs
-        
+
             ZemmixNeo       => ZemmixNeo        ,
-        
+
             JIS2_ena        => JIS2_ena         ,
             portF4_mode     => portF4_mode      ,
             ff_ldbios_n     => ff_ldbios_n      ,
-        
+
             RatioMode       => RatioMode        ,
             centerYJK_R25_n => centerYJK_R25_n  ,
             legacy_sel      => legacy_sel       ,

@@ -92,7 +92,7 @@ architecture rtl of megaram is
     signal WavDbi       : std_logic_vector( 7 downto 0);
 
     signal SccBankL     : std_logic;
-    signal SccBankM     : std_logic;
+    signal SccBankH     : std_logic;
     signal SccBank0     : std_logic_vector( 7 downto 0);
     signal SccBank1     : std_logic_vector( 7 downto 0);
     signal SccBank2     : std_logic_vector( 7 downto 0);
@@ -142,7 +142,7 @@ begin
     -- 1024 kB bank indexing $00~$7F = ASC8K
     RamAdr(20)          <=  '0'         when( mapsel = "01" )else
                             SccBankL    when( adr(14) = '1' and mapsel = "11" )else
-                            SccBankM    when( adr(14) = '0' and mapsel = "11" )else
+                            SccBankH    when( adr(14) = '0' and mapsel = "11" )else
                             SccBank0(7) when( adr(14 downto 13) = "10" )else
                             SccBank1(7) when( adr(14 downto 13) = "11" )else
                             SccBank2(7) when( adr(14 downto 13) = "00" )else
@@ -292,7 +292,7 @@ begin
                         SccBank3 <= dbo;
                     -- ASC16K / 7000-77FFh
                     elsif (adr(11) = '0') then
-                        SccBankM <= dbo(6);
+                        SccBankH <= dbo(6);
                         SccBank2 <= dbo(7) & dbo(5 downto 0) & '0';
                         SccBank3 <= dbo(7) & dbo(5 downto 0) & '1';
                     end if;
