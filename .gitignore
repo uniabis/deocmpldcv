@@ -5,6 +5,7 @@
 /pld/projects/1chipmsx/*.map
 /pld/projects/1chipmsx/*.pin
 /pld/projects/1chipmsx/*.pof
+/pld/projects/1chipmsx/*.rbf
 /pld/projects/1chipmsx/*.rpt
 /pld/projects/1chipmsx/*.sof
 /pld/projects/1chipmsx/*.summary

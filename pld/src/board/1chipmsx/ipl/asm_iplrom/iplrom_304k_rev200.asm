@@ -34,7 +34,7 @@
 ;
 ; Coded in TWZ'CA3 w/ TASM80 v3.2ud for OCM-PLD Pack v3.4 or later
 ;
-; SDHC support by yuukun-OKEI, thanks to MAX
+; SDHC support by Yuukun-OKEI, thanks to MAX
 ;
 
             .org        $FC00

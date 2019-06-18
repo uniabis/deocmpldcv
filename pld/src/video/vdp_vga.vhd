@@ -188,7 +188,7 @@ BEGIN
     -- PIXEL RATIO 1:1 FOR LED DISPLAY
     PROCESS( CLK21M )
         CONSTANT DISP_START_Y   : INTEGER := 3;
-        CONSTANT PRB_HEIGHT     : INTEGER := 21;
+        CONSTANT PRB_HEIGHT     : INTEGER := 25;
         CONSTANT RIGHT_X        : INTEGER := 684 - DISP_WIDTH - 2;              -- 106
         CONSTANT PAL_RIGHT_X    : INTEGER := 87;                                -- 87
         CONSTANT CENTER_X       : INTEGER := RIGHT_X - 32 - 2;                  -- 72
@@ -209,8 +209,8 @@ BEGIN
                    (VCOUNTERIN > 524 + 38 + DISP_START_Y AND VCOUNTERIN < 524 + 38 + DISP_START_Y + PRB_HEIGHT) OR
                    (VCOUNTERIN > 524 + 526 - PRB_HEIGHT) )THEN
                 -- PIXEL RATIO 1:1 (VGA MODE, 60HZ, NOT INTERLACED)
-                IF( EVENODD = '0' )THEN                                         -- PLOT FROM TOP-RIGHT
---              IF( EVENODD = '1' )THEN                                         -- PLOT FROM TOP-LEFT
+--              IF( EVENODD = '0' )THEN                                         -- PLOT FROM TOP-RIGHT
+                IF( EVENODD = '1' )THEN                                         -- PLOT FROM TOP-LEFT
                     DISP_START_X := BASE_LEFT_X + CONV_INTEGER(NOT RATIOMODE);  -- 35 TO 41
                 ELSE
                     DISP_START_X := RIGHT_X;                                    -- 106

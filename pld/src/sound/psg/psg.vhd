@@ -162,31 +162,35 @@ begin
 
     process( reset, clk21m )
     begin
-        if( reset = '1' )then
-            joya        <= (others => 'Z');
-        elsif( clk21m'event and clk21m = '1' )then
-            -- trigger a/b output joystick porta
-            case regb(1 downto 0) is
-                when "00"   => joya(5 downto 4) <= "00";
-                when "01"   => joya(5 downto 4) <= "0Z";
-                when "10"   => joya(5 downto 4) <= "Z0";
-                when others => joya(5 downto 4) <= "ZZ";
-            end case;
+        if( clk21m'event and clk21m = '1' )then
+            if( reset = '1' )then
+                joya <= (others => 'Z');
+            else
+                -- trigger a/b output joystick porta
+                case regb(1 downto 0) is
+                    when "00"   => joya(5 downto 4) <= "00";
+                    when "01"   => joya(5 downto 4) <= "0Z";
+                    when "10"   => joya(5 downto 4) <= "Z0";
+                    when others => joya(5 downto 4) <= "ZZ";
+                end case;
+            end if;
         end if;
     end process;
 
     process( reset, clk21m )
     begin
-        if( reset = '1' )then
-            joyb <= (others => 'Z');
-        elsif( clk21m'event and clk21m = '1' )then
-            -- trigger a/b output joystick portb
-            case regb( 3 downto 2 ) is
-                when "00"   => joyb(5 downto 4) <= "00";
-                when "01"   => joyb(5 downto 4) <= "0Z";
-                when "10"   => joyb(5 downto 4) <= "Z0";
-                when others => joyb(5 downto 4) <= "ZZ";
-            end case;
+        if( clk21m'event and clk21m = '1' )then
+            if( reset = '1' )then
+                joyb <= (others => 'Z');
+            else
+                -- trigger a/b output joystick portb
+                case regb( 3 downto 2 ) is
+                    when "00"   => joyb(5 downto 4) <= "00";
+                    when "01"   => joyb(5 downto 4) <= "0Z";
+                    when "10"   => joyb(5 downto 4) <= "Z0";
+                    when others => joyb(5 downto 4) <= "ZZ";
+                end case;
+            end if;
         end if;
     end process;
 

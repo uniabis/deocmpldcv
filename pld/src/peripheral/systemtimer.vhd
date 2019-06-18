@@ -59,6 +59,7 @@ begin
     ----------------------------------------------------------------
     dbi <=  ff_freerun_counter(  7 downto 0 )   when( adr(0) = '0' )else
             ff_freerun_counter( 15 downto 8 );
+
     ack <=  ff_ack;
 
     ----------------------------------------------------------------
@@ -107,4 +108,5 @@ begin
             ff_ack <= req;
         end if;
     end process;
+
 end rtl;

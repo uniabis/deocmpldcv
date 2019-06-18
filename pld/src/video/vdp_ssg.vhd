@@ -137,10 +137,6 @@ ARCHITECTURE RTL OF VDP_SSG IS
     SIGNAL FF_PRE_X_CNT_START1  : STD_LOGIC_VECTOR(  5 DOWNTO 0 );
     SIGNAL FF_RIGHT_MASK        : STD_LOGIC_VECTOR(  8 DOWNTO 0 );
     SIGNAL FF_WINDOW_X          : STD_LOGIC;
-    SIGNAL FF_WINDOW_Y_VSYNC_DL : STD_LOGIC;
-    SIGNAL FF_WINDOW_Y_VSYNC    : STD_LOGIC;
-    SIGNAL FF_PREWINDOW_Y       : STD_LOGIC;
-    SIGNAL FF_PREWINDOW_Y_SP    : STD_LOGIC;
 
     -- WIRE
     SIGNAL W_H_CNT                  : STD_LOGIC_VECTOR( 10 DOWNTO 0 );
@@ -152,13 +148,8 @@ ARCHITECTURE RTL OF VDP_SSG IS
     SIGNAL W_PRE_X_CNT_START0       : STD_LOGIC_VECTOR(  4 DOWNTO 0 );
     SIGNAL W_PRE_X_CNT_START2       : STD_LOGIC_VECTOR(  8 DOWNTO 0 );
     SIGNAL W_HSYNC                  : STD_LOGIC;
-    SIGNAL W_H_CNT_HALF             : STD_LOGIC;
-    SIGNAL W_H_CNT_END              : STD_LOGIC;
-    SIGNAL W_FIELD_END_CNT          : STD_LOGIC_VECTOR(  9 DOWNTO 0 );
-    SIGNAL W_FIELD_END              : STD_LOGIC;
     SIGNAL W_LEFT_MASK              : STD_LOGIC_VECTOR(  8 DOWNTO 0 );
     SIGNAL W_Y_ADJ                  : STD_LOGIC_VECTOR(  8 DOWNTO 0 );
-    SIGNAL W_DISPLAY_MODE           : STD_LOGIC_VECTOR(  1 DOWNTO 0 );
     SIGNAL W_LINE_MODE              : STD_LOGIC_VECTOR(  1 DOWNTO 0 );
     SIGNAL W_V_BLANKING_START       : STD_LOGIC;
     SIGNAL W_V_BLANKING_END         : STD_LOGIC;
@@ -316,26 +307,6 @@ BEGIN
     END PROCESS;
 
     -----------------------------------------------------------------------------
-    --  VERTICAL COUNTER
-    -----------------------------------------------------------------------------
-    W_H_CNT_HALF    <=  '1' WHEN( W_H_CNT = (CLOCKS_PER_LINE/2)-1 )ELSE
-                        '0';
-    W_H_CNT_END     <=  '1' WHEN( W_H_CNT = CLOCKS_PER_LINE-1 )ELSE
-                        '0';
-
-    W_DISPLAY_MODE  <=  REG_R9_INTERLACE_MODE & VDPR9PALMODE;
-
-    WITH( W_DISPLAY_MODE )SELECT W_FIELD_END_CNT <=
-        CONV_STD_LOGIC_VECTOR( 523, 10 )    WHEN "00",
-        CONV_STD_LOGIC_VECTOR( 524, 10 )    WHEN "10",
-        CONV_STD_LOGIC_VECTOR( 625, 10 )    WHEN "01",
-        CONV_STD_LOGIC_VECTOR( 624, 10 )    WHEN "11",
-        (OTHERS=>'X')                       WHEN OTHERS;
-
-    W_FIELD_END <=  '1' WHEN( W_V_CNT_IN_FIELD >= W_FIELD_END_CNT )ELSE
-                    '0';
-
-    -----------------------------------------------------------------------------
     -- GENERATE V-SYNC PULSE
     -----------------------------------------------------------------------------
     PROCESS( RESET, CLK21M )
@@ -475,18 +446,4 @@ BEGIN
                                       (W_V_CNT_IN_FIELD = ((W_V_SYNC_INTR_START_LINE + LED_TV_Y_PAL) & (W_FIELD AND REG_R9_INTERLACE_MODE)) AND VDPR9PALMODE = '1') )ELSE
                             '0';
 
-    PROCESS( CLK21M )
-    BEGIN
-        IF( CLK21M'EVENT AND CLK21M = '1' )THEN
-            IF( W_HSYNC = '1' )THEN
-                IF( W_V_BLANKING_END = '1' )THEN
-                    -- FIELD START (V-BLANKING END)
-                    FF_WINDOW_Y_VSYNC <= '0';
-                ELSIF( W_V_BLANKING_START = '1' )THEN
-                    -- FIELD END (V-BLANKING START)
-                    FF_WINDOW_Y_VSYNC <= '1';
-                END IF;
-            END IF;
-        END IF;
-    END PROCESS;
 END RTL;

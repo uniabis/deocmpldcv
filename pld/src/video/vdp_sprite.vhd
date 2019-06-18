@@ -2,7 +2,7 @@
 --  vdp_sprite.vhd
 --    Sprite module.
 --
---  Copyright (C) 2004-2006 Kunihiko Ohnaka,
+--  Copyright (C) 2004-2006 Kunihiko Ohnaka
 --  All rights reserved.
 --                                     http://www.ohnaka.jp/ese-vdp/
 --

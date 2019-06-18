@@ -465,7 +465,7 @@ BEGIN
     --------------------------------------------------------------------------
     -- PROCESS OF CPU WRITE REQUEST
     --------------------------------------------------------------------------
-    PROCESS( RESET, CLK21M )
+    PROCESS( RESET, CLK21M, FORCED_V_MODE )
     BEGIN
         IF( RESET = '1' )THEN
             VDPP1DATA <= (OTHERS => '0');

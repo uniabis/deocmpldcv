@@ -29,11 +29,11 @@
 -- OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 -- ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --
--- 2018.07.27 modified by KdL
--- Added optional scancode $61 '\|' to the English keyboard.
---
 -- 2013.08.12 modified by KdL
 -- Added RWIN and LWIN usable as alternatives to the space-bar.
+--
+-- 2018.07.27 modified by KdL
+-- Added optional scancode $61 '\|' to the English keyboard.
 --
 
 library ieee;

@@ -73,7 +73,7 @@ entity eseps2 is
 
     -- | b7  | b6   | b5   | b4   | b3  | b2  | b1  | b0  |
     -- | SHI | --   | PgUp | PgDn | F9  | F10 | F11 | F12 |
-    Fkeys    : out std_logic_vector(7 downto 0);
+    Fkeys    : buffer std_logic_vector(7 downto 0);
 
     pPs2Clk  : inout std_logic;
     pPs2Dat  : inout std_logic;
@@ -131,7 +131,7 @@ begin
 
     variable Ps2Caps : std_logic;
     variable Ps2Kana : std_logic;
-    variable Ps2Paus : std_logic;
+--  variable Ps2Paus : std_logic;
 --  variable Ps2Scro : std_logic;       -- used for 101/106 key table switching
     variable Ps2Scro : std_logic;       -- used for CMT switching
     variable Ps2Shif : std_logic;       -- real shift status
@@ -163,7 +163,7 @@ begin
 
       Ps2Caps := '1';
       Ps2Kana := '1';
-      Ps2Paus := '0';
+--    Ps2Paus := '0';
 
       Paus    <= '0';
       Reso    <= '0';                   -- Sync to ff_Reso
@@ -180,6 +180,7 @@ begin
       iKeyCol <= (others => '0');
 
     elsif( clk21m'event and clk21m = '1' )then
+      oFkeys := Fkeys;
 
       if clkena = '1' then
         -- "Scan table > MSX key-matrix" conversion
@@ -293,7 +294,7 @@ begin
             if( Ps2Cnt = "1000" )then
               Ps2Caps := Caps;
               Ps2Kana := Kana;
-              Ps2Paus := Paus;
+--            Ps2Paus := Paus;
               Ps2Scro := CmtScro;
               Ps2Seq := Ps2Idle;
             end if;
@@ -313,7 +314,7 @@ begin
             if( Ps2Dat = X"AA" )then    -- BAT code (basic assurance test)
               Ps2Caps := not Caps;
               Ps2Kana := not Kana;
-              Ps2Paus := not Paus;
+--            Ps2Paus := not Paus;
               Ps2Scro := not CmtScro;
             elsif Ps2Skp /= "000" then  -- Skip some sequences
               Ps2Skp := Ps2Skp - 1;
