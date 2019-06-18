@@ -50,6 +50,7 @@
 --             - Fixed a problem where a comma key is pressed after a
 --               pause key.
 -- Jan 23 2004 - Added a 101 keyboard table.
+-- Jan 16 2017 - Improved compatibility for some PS/2 keyboards. (by プー)
 --------------------------------------------------------------------------------
 --
 
@@ -144,6 +145,7 @@ begin
     variable MtxSeq : typMtxSeq;
     variable MtxTmp : std_logic_vector(3 downto 0);
 
+    variable FAflag : std_logic;
   begin
 
     if( reset = '1' )then
@@ -178,6 +180,7 @@ begin
       KeyWe   <= '0';
       KeyRow  <= (others => '0');
       iKeyCol <= (others => '0');
+      FAflag := '0';
 
     elsif( clk21m'event and clk21m = '1' )then
       oFkeys := Fkeys;
@@ -291,27 +294,35 @@ begin
             Ps2Seq := Ps2Rxd;
             Ps2Cnt := (others => '0');
           elsif( Ps2Seq = Ps2Txd )then
-            if( Ps2Cnt = "1000" )then
+            if( Ps2Cnt < x"9" )then
+              if( Ps2Led(0) = '1' )then
+                pPs2Dat <= 'Z';
+              else
+                pPs2Dat <= '0';
+              end if;
+              Ps2Led := Ps2Led(0) & Ps2Led(8 downto 1);
+              Ps2Dat := '1' & Ps2Dat(7 downto 1);
+            elsif( Ps2Cnt = x"9" )then
+              pPs2Dat <= 'Z';
+            elsif( Ps2Cnt = x"a" )then
               Ps2Caps := Caps;
               Ps2Kana := Kana;
 --            Ps2Paus := Paus;
               Ps2Scro := CmtScro;
               Ps2Seq := Ps2Idle;
             end if;
-            pPs2Dat <= Ps2Led(0);
-            Ps2Led := Ps2Led(0) & Ps2Led(8 downto 1);
-            Ps2Dat := '1' & Ps2Dat(7 downto 1);
             Ps2Cnt := Ps2Cnt + 1;
           elsif( Ps2Seq = Ps2Rxd )then
-            if( Ps2Cnt = "0111" )then
+            if( Ps2Cnt < x"8" )then
+              Ps2Dat := pPs2Dat & Ps2Dat(7 downto 1);
+            elsif( Ps2Cnt = x"8" )then
               Ps2Seq := Ps2Stop;
             end if;
-            Ps2Dat := pPs2Dat & Ps2Dat(7 downto 1);
             Ps2Cnt := Ps2Cnt + 1;
 
           elsif( Ps2Seq = Ps2Stop )then
             Ps2Seq := Ps2Idle;
-            if( Ps2Dat = X"AA" )then    -- BAT code (basic assurance test)
+            if( Ps2Dat = X"AA" AND FAflag = '0' )then    -- BAT code (basic assurance test)
               Ps2Caps := not Caps;
               Ps2Kana := not Kana;
 --            Ps2Paus := not Paus;
@@ -382,6 +393,7 @@ begin
               Ps2xE1 := '1';
             elsif( Ps2Dat = X"FA" )then -- Ack of "EDh" command
               Ps2Seq := Ps2Idle;
+              FAflag := '1';
             else
               Ps2Chg := '1';
             end if;
@@ -399,9 +411,10 @@ begin
 
           if( Ps2Seq = Ps2Idle and Ps2Clk(2) = '1' )then
 
-            if( Ps2Dat = X"FA" and Ps2Led = "111101101" )then
+            if( FAflag = '1'and Ps2Led = "111101101" )then
               Ps2Seq := Ps2Txd;         -- Tx data state
               pPs2Dat <= '0';
+              Ps2Cnt := (others => '0');
 
               --Ps2Led := (Caps xor Kana xor Paus xor '1') & "00000" & (not Caps) & (not Kana) & Paus;
               Ps2Led := (Caps xor Kana xor CmtScro xor '1') & "00000" & (not Caps) & (not Kana) & CmtScro;
@@ -410,9 +423,11 @@ begin
             elsif( Caps /= Ps2Caps or Kana /= Ps2Kana or CmtScro /= Ps2Scro )then
               Ps2Seq := Ps2Txd;         -- Tx data state
               pPs2Dat <= '0';
+              Ps2Cnt := (others => '0');
               Ps2Led := "111101101";    -- Command EDh
               timout := X"FFFF";        -- countdown timeout (18.3ms = 279ns x 65536clk, exceed 1ms)
 
+              FAflag := '0';
             end if;
           end if;
 
