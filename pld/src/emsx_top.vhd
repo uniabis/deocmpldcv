@@ -579,7 +579,7 @@ architecture RTL of emsx_top is
     signal  io40_n          : std_logic_vector(  7 downto 0 );
     signal  io41_id212_n    : std_logic_vector(  7 downto 0 );                  -- here to reduce LEs
     signal  io42_id212      : std_logic_vector(  7 downto 0 );
-    signal  io43_id212      : std_logic_vector(  7 downto 0 );
+    signal  io43_id212      : std_logic_vector(  7 downto 0 ) := "00000000";
     alias   RstKeyLock      : std_logic is io43_id212(5);
     signal  io44_id212      : std_logic_vector(  7 downto 0 );
     alias   GreenLeds       : std_logic_vector(  7 downto 0 ) is io44_id212;
@@ -654,8 +654,8 @@ architecture RTL of emsx_top is
     signal  FreeCounter     : std_logic_vector( 15 downto 0 ) := (others => '0');
     signal  HoldRst_ena     : std_logic := '0';
     signal  HardRst_cnt     : std_logic_vector(  3 downto 0 ) := (others => '0');
-    signal  LogoRstCnt      : std_logic_vector(  4 downto 0 ) := (others => '0');
-    signal  logo_timeout    : std_logic_vector(  1 downto 0 );
+    signal  LogoRstCnt      : std_logic_vector(  4 downto 0 ) := (others => '1');
+    signal  logo_timeout    : std_logic_vector(  1 downto 0 ) := (others => '0');
     signal  trueClk         : std_logic;
 
     -- MSX cartridge slot control signals

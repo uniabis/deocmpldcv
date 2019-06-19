@@ -1,21 +1,45 @@
 ﻿
 ## Description
 
-This project is a port of the [1chipMSX](http://www.msx.d4e.co.jp/1chipmsx.html) to [DEOCM](http://yone2.net/deocm) + [DE0-CV](http://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&No=921)
-including modification of [OCM-PLD](http://gnogni.altervista.org/).
+This project is a port of the [1chipMSX](http://www.msx.d4e.co.jp/1chipmsx.html) to [DEOCM](http://yone2.net/deocm) + [DE0-CV](https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&No=921)
+including modification of [OCM-PLD](https://gnogni.altervista.org/).
 
 ## How to install
 
 1. [Register and SignIn for Intel FPGA Program.](https://www.intel.com/content/www/us/en/forms/fpga/fpga-individual-registration.html)
-2. [Download and install Additional Software>Quartus Prime Programmer and Tools.](http://fpgasoftware.intel.com/?edition=lite&platform=windows&download_manager=direct)
+2. [Download and install 'Additional Software>Quartus Prime Programmer and Tools'.](http://fpgasoftware.intel.com/?edition=lite&platform=windows&download_manager=direct)
 3. [Download and unzip pof file from deocm-pld-cv Releases.](https://github.com/uniabis/deocmpldcv/releases)
 4. Connect your PC and DE0-CV with USB cable.
 5. Set the RUN/PROG slide switch (SW10) of DE0-CV to the PROG position.
-6. Run Quartus Prime Programmer and Tools Write pof file to flash memory(EPCS) on DE0-CV.
+6. Run 'Quartus Prime Programmer and Tools' and write pof file to flash memory(EPCS) on DE0-CV.
 7. Set the RUN/PROG slide switch (SW10) of DE0-CV to the RUN position.
+
+## Changelog
+
+### v0.0.4(2019/06/19)
+
+- OCM-PLD v3.7.1
+- Fixed FIELD statement in DISK BASIC version 2.01.
+- Improved compatibility for some PS/2 keyboards.
+
+### v0.0.3(2019/03/12)
+
+- Adjusted audio volume.
+
+### v0.0.2(2019/02/24)
+
+- Improved reset sequence.
+- Modified IPL to always load bios on reset.
+
+### v0.0.1(2019/02/17)
+
+- Initial release.
+- OCM-PLD v3.6.2
+- Builtin 1chipMSX MSX2 BIOS
 
 ## Licenses
 
+### ESE MSX-SYSTEM3
 
 ```vhdl:ocm_license.vhdl
 --
@@ -51,6 +75,8 @@ including modification of [OCM-PLD](http://gnogni.altervista.org/).
 -- ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --
 ```
+
+### T80
 
 ```vhdl:t80a_license.vhdl
 --
@@ -96,6 +122,8 @@ including modification of [OCM-PLD](http://gnogni.altervista.org/).
 --  http://www.opencores.org/cvsweb.shtml/t80/
 --
 ```
+
+### ESE-VDP
 
 ```vhdl:esevdp_license.vhdl
 --
@@ -166,6 +194,8 @@ including modification of [OCM-PLD](http://gnogni.altervista.org/).
 --
 ```
 
+### VM2413
+
 ```vhdl:vm2413_license.vhdl
 --
 -- VM2413
@@ -202,6 +232,7 @@ including modification of [OCM-PLD](http://gnogni.altervista.org/).
 --
 ```
 
+### 1chipMSX改
 
 ```vhdl:ocmkai_license.vhdl
 --
@@ -235,6 +266,8 @@ including modification of [OCM-PLD](http://gnogni.altervista.org/).
 --
 ```
 
+### OCM-PLD
+
 ```vhdl:ocmpld_license.vhdl
 --
 -- OCM-PLD
@@ -267,6 +300,8 @@ including modification of [OCM-PLD](http://gnogni.altervista.org/).
 --
 ```
 
+### Altera megafunctions
+
 ```vhdl:altmegafunction_license.vhdl
 -- Altera megafunctions
 --
@@ -291,6 +326,7 @@ including modification of [OCM-PLD](http://gnogni.altervista.org/).
 --party's intellectual property, are provided herein.
 ```
 
+### DEOCM-PLD-CV
 
 ```vhdl:deocmpldcv_license.vhdl
 --
